@@ -1,0 +1,1778 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0D1017">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png">
+<title>مقطع</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}
+/* Layout: dark-first mobile app. Bottom tabs (home / books / words / review); reader is a full-screen view with its own header. Level cards use bold gradients, saved words glow blue (new), amber (learning), green underline (known). */
+:root {
+  --bg: #0D1017;
+  --surface: #161B26;
+  --surface2: #1F2635;
+  --line: #2A3243;
+  --ink: #EEF2F8;
+  --muted: #98A2B6;
+  --accent: #BDF26D;
+  --accent-ink: #17260A;
+  --new-bg: #1C3A6E;
+  --new-ink: #C3DAFF;
+  --learn-bg: #4B3A10;
+  --learn-ink: #FFDC8E;
+  --known: #7BD88F;
+  --c0: #6FD494; --c1: #F58383; --c2: #86ADF5; --c3: #F2B866; --c4: #C39DF2;
+  --danger: #FF8D7A;
+  --ui: "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --read: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --fs: 21px;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #F3F5F9; --surface: #FFFFFF; --surface2: #EAEEF5; --line: #D9DFEA; --ink: #121826; --muted: #5A6479;
+    --accent: #3F7D14; --accent-ink: #FFFFFF; --new-bg: #D6E6FF; --new-ink: #0E3470; --learn-bg: #FFE9B5; --learn-ink: #5A3C00;
+    --known: #2E8B47; --danger: #B3321F; color-scheme: light;
+    --c0: #2F8F55; --c1: #D14F4F; --c2: #3F69D0; --c3: #B87A1F; --c4: #8556C4;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #F3F5F9; --surface: #FFFFFF; --surface2: #EAEEF5; --line: #D9DFEA; --ink: #121826; --muted: #5A6479;
+  --accent: #3F7D14; --accent-ink: #FFFFFF; --new-bg: #D6E6FF; --new-ink: #0E3470; --learn-bg: #FFE9B5; --learn-ink: #5A3C00;
+  --known: #2E8B47; --danger: #B3321F; color-scheme: light;
+  --c0: #2F8F55; --c1: #D14F4F; --c2: #3F69D0; --c3: #B87A1F; --c4: #8556C4;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--ui); font-size: 16px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+.view { max-width: 640px; margin: 0 auto; padding-bottom: 110px; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+h2, h3 { margin: 0; }
+.hint { color: var(--muted); font-size: 14px; margin: 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+.top { padding: 18px 0 6px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.logo { font-size: 32px; font-weight: 700; line-height: 1; letter-spacing: -0.5px; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { background: var(--surface2); border-radius: 99px; padding: 5px 12px; font-size: 13px; font-weight: 600; }
+.pagetitle { font-size: 26px; font-weight: 700; padding: 20px 0 8px; }
+.sec { font-size: 20px; font-weight: 700; padding: 22px 0 10px; }
+
+.btn { border: 0; border-radius: 14px; padding: 10px 16px; font-weight: 600; background: var(--surface2); color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; }
+.btn.main { background: var(--accent); color: var(--accent-ink); }
+.btn.ghost { background: transparent; border: 1.5px solid var(--line); }
+.btn.small { min-height: 36px; padding: 6px 12px; font-size: 14px; border-radius: 12px; }
+.btn.on { background: var(--accent); color: var(--accent-ink); }
+.btn[disabled] { opacity: .5; cursor: default; }
+.field { width: 100%; border: 1.5px solid var(--line); background: var(--bg); border-radius: 14px; padding: 11px 14px; direction: ltr; text-align: left; font-family: var(--read); font-size: 16px; }
+textarea.field { min-height: 140px; resize: vertical; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 16px; display: grid; gap: 12px; }
+.linkrow { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+details.manual summary { color: var(--muted); font-size: 14px; cursor: pointer; }
+details.manual { display: grid; gap: 10px; }
+
+.lvl { border-radius: 26px; overflow: hidden; color: #fff; margin-bottom: 14px; box-shadow: 0 10px 28px rgba(0,0,0,.28); }
+.lvl .t { padding: 18px 20px 16px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; position: relative; }
+.lvl .t::after { content: ""; position: absolute; inset-inline-start: -40px; top: -60px; width: 170px; height: 170px; border-radius: 50%; background: rgba(255,255,255,.12); }
+.lvl .code { font-size: 58px; font-weight: 700; line-height: 1; direction: ltr; position: relative; z-index: 1; }
+.lvl .sub { font-family: var(--read); direction: ltr; text-align: left; font-size: 16px; opacity: .95; margin-top: 8px; position: relative; z-index: 1; }
+.lvl .go { position: relative; z-index: 1; border: 1.5px solid rgba(255,255,255,.55); background: rgba(255,255,255,.18); color: #fff; border-radius: 99px; padding: 6px 16px; font-weight: 600; }
+.lvl .b { background: rgba(0,0,0,.2); padding: 14px 20px; display: grid; gap: 8px; }
+.lvl .b .l { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; }
+.pbar { height: 8px; border-radius: 99px; background: rgba(255,255,255,.28); overflow: hidden; }
+.pbar i { display: block; height: 100%; background: #fff; border-radius: 99px; }
+.lvl-A1 { background: linear-gradient(160deg, #46A4FF, #2878DB); }
+.lvl-A2 { background: linear-gradient(160deg, #26BFA2, #14877A); }
+.lvl-B1 { background: linear-gradient(160deg, #9576F5, #6544CF); }
+.lvl-B2 { background: linear-gradient(160deg, #F8A24F, #D4672A); }
+.lvl-C1 { background: linear-gradient(160deg, #E5657A, #B83A52); }
+.lvl-me { background: linear-gradient(160deg, #5C667D, #353D50); }
+
+.hist { display: grid; gap: 10px; }
+.hitem { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 12px 14px; display: flex; gap: 12px; align-items: center; text-align: right; width: 100%; }
+.hitem .ic { width: 46px; height: 46px; border-radius: 14px; background: var(--surface2); display: grid; place-items: center; font-weight: 700; flex: none; font-size: 18px; color: var(--accent); }
+.hitem .tt { flex: 1; min-width: 0; }
+.hitem .tt b { display: block; font-family: var(--read); direction: ltr; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hitem .tt span { color: var(--muted); font-size: 13px; }
+
+.fchips { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 10px; }
+.fchip { flex: none; border: 1.5px solid var(--line); background: transparent; border-radius: 99px; padding: 6px 16px; font-weight: 600; font-size: 14px; }
+.fchip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.books { display: grid; gap: 12px; }
+.book { display: flex; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 12px; width: 100%; text-align: right; align-items: center; }
+.cover { width: 72px; height: 96px; border-radius: 12px; flex: none; display: grid; place-items: center; color: #fff; font-family: var(--read); font-weight: 700; font-size: 26px; direction: ltr; }
+.book .info { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.book .en { font-family: var(--read); font-weight: 700; font-size: 18px; direction: ltr; text-align: left; }
+.book .ar { color: var(--muted); font-size: 14px; }
+.book .pbar { background: var(--line); }
+.book .pbar i { background: var(--accent); }
+.badge2 { display: inline-block; font-size: 12px; padding: 1px 10px; border-radius: 99px; background: var(--surface2); color: var(--muted); font-weight: 600; width: fit-content; }
+
+/* reader */
+.rhead { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 8; background: var(--bg); display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; height: 56px; }
+.rhead .rt { font-family: var(--read); font-weight: 700; direction: ltr; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+#playerwrap { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 56px); z-index: 7; background: var(--bg); padding-bottom: 8px; display: grid; gap: 8px; }
+#playerwrap iframe, #player { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 16px; display: block; background: #000; }
+.vctl { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.rbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 8px 0; }
+.legend { display: flex; gap: 12px; font-size: 12px; color: var(--muted); padding-bottom: 4px; flex-wrap: wrap; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 5px; vertical-align: -1px; }
+.reader { direction: ltr; text-align: left; font-family: var(--read); }
+.sent { padding: 12px 0; border-bottom: 1px solid var(--line); border-radius: 0; }
+.sent .en { font-size: var(--fs); line-height: 2; margin: 0; }
+.sent.now { background: var(--surface); border-radius: 16px; padding-left: 12px; padding-right: 12px; box-shadow: inset 3px 0 0 var(--accent); }
+.sent.playing { background: var(--surface); border-radius: 16px; padding-left: 12px; padding-right: 12px; }
+.w { background: none; border: 0; padding: 1px 3px; margin: 0 -1px; border-radius: 8px; font: inherit; color: inherit; }
+.w.w-new { background: var(--new-bg); color: var(--new-ink); }
+.w.w-learn { background: var(--learn-bg); color: var(--learn-ink); }
+.w.w-known { text-decoration: underline dotted var(--known); text-underline-offset: 5px; text-decoration-thickness: 2px; }
+.w.cur { outline: 2px solid var(--accent); }
+.w.say { outline: 2px solid var(--accent); background: var(--surface2); }
+.tr { direction: rtl; text-align: right; font-family: var(--ui); color: var(--muted); font-size: 16px; margin: 0 0 4px; line-height: 1.7; }
+.hidetr .tr { display: none; }
+.nw { white-space: nowrap; }
+.cm .w[data-c], .cm .ac[data-c] { font-weight: 400; }
+.cm [data-c="0"] { color: var(--c0); } .cm [data-c="1"] { color: var(--c1); } .cm [data-c="2"] { color: var(--c2); } .cm [data-c="3"] { color: var(--c3); } .cm [data-c="4"] { color: var(--c4); }
+.cm .tr { color: var(--ink); font-size: 18px; line-height: 2; }
+.ac { padding: 1px 6px; border-radius: 6px; margin-inline: 1px; font-weight: 500; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.tools { display: none; gap: 8px; margin-top: 8px; direction: rtl; flex-wrap: wrap; }
+.sent.open .tools { display: flex; }
+.explain { direction: rtl; text-align: right; font-family: var(--ui); background: var(--surface2); border-radius: 14px; padding: 12px; margin-top: 8px; white-space: pre-wrap; font-size: 15px; }
+.rprog { position: fixed; left: 0; right: 0; bottom: 0; height: 4px; background: var(--line); z-index: 9; }
+.rprog i { display: block; height: 100%; background: var(--accent); width: 0; }
+
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); z-index: 5;
+  padding: 8px max(12px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); }
+.tabs .tl { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.tab { border: 0; background: transparent; border-radius: 16px; padding: 8px 4px; font-weight: 600; font-size: 13px; color: var(--muted); min-height: 50px; display: grid; gap: 2px; justify-items: center; }
+.tab svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tab[aria-selected="true"] { background: var(--surface2); color: var(--accent); }
+.badge { display: inline-block; min-width: 20px; padding: 0 6px; margin-inline-start: 4px; border-radius: 99px; background: var(--accent); color: var(--accent-ink); font-size: 11px; line-height: 18px; }
+
+.list { display: grid; gap: 10px; padding-top: 6px; }
+.item { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 12px 14px; display: grid; gap: 4px; }
+.item .head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.item .en { font-family: var(--read); font-weight: 700; font-size: 20px; direction: ltr; }
+.item .ar { font-size: 18px; font-weight: 600; }
+.item .ctx { font-family: var(--read); direction: ltr; text-align: left; color: var(--muted); font-size: 14px; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-inline-end: 6px; }
+.empty { text-align: center; color: var(--muted); padding: 36px 12px; }
+
+
+/* words: decks + rows (flat list style) */
+.deckrow { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.deckrow .txt { min-width: 0; }
+.deckrow .nm { font-size: 19px; font-weight: 600; line-height: 1.3; }
+.deckrow .nm.en { font-family: var(--read); direction: ltr; text-align: right; }
+.deckrow .ct { color: var(--muted); font-size: 13px; }
+.sumcard { display: flex; align-items: center; gap: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 16px 18px; margin: 4px 0 6px; }
+.sumcard .big { font-size: 34px; font-weight: 700; line-height: 1; color: var(--accent); }
+.sumcard .tx { display: grid; gap: 2px; min-width: 0; }
+.sumcard .tx span { color: var(--muted); font-size: 14px; }
+.gh { font-size: 14px; font-weight: 700; color: var(--muted); padding: 18px 2px 4px; letter-spacing: .3px; }
+.deckrow { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 12px 14px; margin-top: 10px; }
+.tile { flex: none; width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 18px; font-family: var(--read); direction: ltr; }
+.ring { --p: 0; margin-inline-start: auto; flex: none; width: 56px; height: 56px; border-radius: 50%; border: 0; padding: 4px; background: conic-gradient(var(--accent) calc(var(--p) * 1%), var(--line) 0); }
+.ring span { width: 100%; height: 100%; border-radius: 50%; background: var(--surface); display: grid; place-items: center; color: var(--accent); }
+.ring svg { width: 24px; height: 24px; }
+.bigbar { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 14px 16px; display: grid; gap: 10px; margin: 8px 0; }
+.bigbar .bt { display: flex; justify-content: space-between; gap: 10px; align-items: center; font-size: 14px; color: var(--muted); }
+.bigbar .bt b { color: var(--fg); font-size: 15px; }
+.bigbar .bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.bigbar .bar i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+.bigbar .hint { font-size: 13px; color: var(--muted); margin: 0; }
+.dsearch { margin: 6px 0 4px; direction: rtl; text-align: right; font-family: var(--ui); }
+.pill { margin-inline-start: auto; display: flex; align-items: center; gap: 10px; border: 2.5px solid var(--line); border-radius: 99px; background: transparent; padding: 8px 18px; color: var(--accent); font-weight: 700; direction: ltr; }
+.pill svg { width: 26px; height: 26px; }
+.pill .pct { font-size: 15px; min-width: 38px; text-align: center; }
+.dhead { display: flex; align-items: center; gap: 8px; padding: 14px 0 6px; }
+.dhead .dt { flex: 1; font-size: 24px; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ibtn { width: 42px; height: 42px; border-radius: 50%; border: 0; background: transparent; display: grid; place-items: center; color: var(--muted); }
+.ibtn.on { background: var(--surface2); color: var(--accent); }
+.ibtn svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.wrow { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--line); direction: ltr; }
+.wrow .spk { flex: none; width: 44px; height: 44px; border-radius: 50%; border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; }
+.wrow .spk svg { width: 26px; height: 26px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.wrow .wen { font-family: var(--read); font-size: 22px; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.wrow .war { direction: rtl; text-align: right; font-size: 21px; max-width: 45%; overflow-wrap: anywhere; }
+.wrow.hid:not(.rev) .war { visibility: hidden; }
+.wlv { flex: none; width: 5px; height: 34px; border-radius: 3px; background: var(--line); }
+.wlv.new { background: var(--new-ink); opacity: .6; }
+.wlv.learn { background: var(--learn-ink); }
+.wlv.known { background: var(--known); }
+.xbtn { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--surface2); color: var(--danger); font-size: 20px; line-height: 1; }
+.fabbar { position: fixed; left: 0; right: 0; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 6; display: flex; justify-content: space-between; align-items: center; pointer-events: none;
+  padding: 0 max(16px, env(safe-area-inset-left, 0px)) 0 max(16px, env(safe-area-inset-right, 0px)); }
+.fabbar > * { pointer-events: auto; }
+.fab { width: 64px; height: 64px; border-radius: 20px; border: 0; background: var(--accent); color: var(--accent-ink); font-size: 36px; line-height: 1; box-shadow: 0 8px 22px rgba(0,0,0,.35); }
+.btn.outline { background: var(--bg); border: 2px solid var(--accent); color: var(--accent); box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+#v-words { padding-bottom: 190px; }
+.back { margin-top: 14px; }
+
+
+/* translator + pronunciation */
+.langbar { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; padding: 6px 0 10px; text-align: center; font-weight: 700; font-size: 17px; }
+.tbox { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 12px 14px 10px; display: grid; gap: 8px; }
+.tarea { width: 100%; min-height: 120px; max-height: 40vh; resize: vertical; border: 0; outline: 0; background: transparent; font-size: 20px; line-height: 1.7; font-family: var(--read); }
+.tarea:focus-visible { outline: 0; }
+.trow { display: flex; gap: 4px; align-items: center; }
+.trow .btn { margin-inline-start: auto; }
+.modebar { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 4px; margin-bottom: 12px; }
+.modebar button { min-height: 42px; border: 0; border-radius: 12px; background: none; color: var(--muted); font: inherit; font-weight: 600; font-size: 15px; }
+.modebar button.on { background: var(--accent); color: var(--accent-ink); }
+.dpick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.dpick button { text-align: right; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 18px; padding: 10px 12px; font: inherit; display: grid; gap: 2px; }
+.dpick button b { font-size: 15px; font-weight: 600; }
+.dpick button span { font-size: 12px; color: var(--muted); }
+.dpick button.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.dsrch { display: flex; gap: 8px; }
+.dsrch input { flex: 1; min-width: 0; direction: auto; font-family: var(--read); font-size: 18px; }
+.sugs { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 0; }
+.sugs button { background: var(--surface2); border: 0; border-radius: 99px; padding: 6px 14px; color: var(--ink); font-family: var(--read); font-size: 15px; }
+.sugs button span { color: var(--muted); font-family: var(--ui); font-size: 13px; margin-inline-start: 6px; }
+.dent { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 18px 16px; display: grid; gap: 14px; margin-top: 12px; }
+.dent .dh { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.dent .dw { font-family: var(--read); direction: ltr; font-size: 32px; font-weight: 700; overflow-wrap: anywhere; }
+.dent .lvb { border-radius: 99px; padding: 3px 12px; font-size: 14px; font-weight: 700; color: #fff; background: #5C667D; }
+.dent .lvb.A1 { background: #2878DB; } .dent .lvb.A2 { background: #14877A; } .dent .lvb.B1 { background: #6544CF; } .dent .lvb.B2 { background: #D4672A; } .dent .lvb.C1 { background: #B83A52; } .dent .lvb.C2 { background: #4B5BD6; }
+.dent .dp { color: var(--muted); direction: ltr; text-align: left; font-family: var(--read); font-size: 15px; }
+.dent .df { direction: ltr; text-align: left; font-family: var(--read); font-size: 14px; color: var(--muted); }
+.dent .df b { color: var(--ink); font-weight: 600; }
+.sense { border-inline-start: 4px solid var(--c0); padding: 2px 12px; display: grid; gap: 4px; }
+.sense .sp { color: var(--muted); font-size: 13px; font-weight: 600; }
+.sense .sa { font-size: 22px; font-weight: 600; line-height: 1.5; }
+.sense .sd.big { font-size: 18px; color: var(--ink); line-height: 1.5; }
+.sense .sd { direction: ltr; text-align: left; font-family: var(--read); color: var(--muted); font-size: 15px; }
+.sense .se { direction: ltr; text-align: left; font-family: var(--read); font-size: 16px; margin-top: 4px; }
+.sense .se2 { font-size: 15px; color: var(--muted); }
+.dent .lab { color: var(--muted); font-size: 13px; font-weight: 600; }
+.chips2 { display: flex; gap: 8px; flex-wrap: wrap; }
+.chips2 span { background: var(--surface2); border-radius: 99px; padding: 4px 14px; font-size: 15px; font-family: var(--read); direction: ltr; }
+.chips2.ant span { background: none; border: 1px solid var(--line); }
+.phr { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid var(--line); padding-top: 8px; font-size: 15px; }
+.phr b { font-family: var(--read); direction: ltr; font-weight: 600; }
+.tipbox { background: var(--surface2); border-radius: 16px; padding: 10px 14px; font-size: 15px; line-height: 1.7; }
+.goal { margin: 12px 0 14px; display: grid; grid-template-columns: auto 1fr; gap: 14px 16px; align-items: center; }
+.gring { position: relative; width: 84px; height: 84px; border: 0; background: none; padding: 0; color: var(--ink); }
+.gring svg { width: 84px; height: 84px; transform: rotate(-90deg); }
+.gring circle { fill: none; stroke-width: 9; }
+.gring .bg { stroke: var(--line); }
+.gring .fg { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset .5s; }
+.gring .gn { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; font-weight: 700; font-size: 20px; line-height: 1.1; font-family: var(--read); direction: ltr; }
+.gring .gn span { font-size: 12px; color: var(--muted); font-weight: 500; font-family: var(--ui); }
+.goal .gt { display: grid; gap: 4px; min-width: 0; }
+.goal .gt b { font-size: 17px; }
+.goal .gt span { color: var(--muted); font-size: 14px; }
+.goal .gweek { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; align-items: end; height: 52px; }
+.goal .gweek div { display: grid; gap: 4px; justify-items: center; align-items: end; font-size: 11px; color: var(--muted); }
+.goal .gweek i { display: block; width: 100%; max-width: 26px; border-radius: 6px; background: var(--line); min-height: 4px; }
+.goal .gweek i.on { background: var(--accent); }
+.goal .gbtn { grid-column: 1 / -1; }
+.duebanner { background: var(--surface); border: 1px solid var(--accent); border-radius: 18px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.duebanner b { font-size: 15px; }
+.prewords .prow { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid var(--line); padding: 10px 0; }
+.prewords .prow b { font-family: var(--read); direction: ltr; font-size: 17px; font-weight: 600; }
+.prewords .prow span { color: var(--muted); font-size: 15px; }
+.tres { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 16px; display: grid; gap: 12px; margin-top: 12px; }
+.tres .tt { font-size: 24px; font-weight: 600; line-height: 1.6; overflow-wrap: anywhere; }
+.tres .tt.en { font-family: var(--read); direction: ltr; text-align: left; }
+.tres .prn { color: var(--muted); font-size: 14px; direction: ltr; text-align: left; font-family: var(--read); }
+.tres .lab { color: var(--muted); font-size: 13px; font-weight: 600; }
+.tres .alts { display: flex; gap: 8px; flex-wrap: wrap; }
+.tres .alts span { background: var(--surface2); border-radius: 99px; padding: 4px 14px; font-size: 15px; }
+.exs { display: grid; gap: 10px; }
+.ex { border-top: 1px solid var(--line); padding-top: 10px; display: grid; gap: 2px; }
+.ex .e1 { font-family: var(--read); direction: ltr; text-align: left; font-size: 17px; }
+.ex .e2 { color: var(--muted); font-size: 15px; }
+.hrow { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 10px 14px; text-align: right; width: 100%; display: grid; gap: 2px; }
+.hrow b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hrow span { color: var(--muted); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wrow { flex-wrap: wrap; }
+.wrow .pr { flex-basis: 100%; padding-left: 58px; padding-bottom: 2px; direction: ltr; color: var(--muted); font-size: 14px; font-family: var(--read); }
+.pron { font-family: var(--read); direction: ltr; text-align: left; }
+.recrow { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
+.modes { display: flex; gap: 6px; flex-wrap: wrap; padding: 6px 0 10px; }
+.flash { background: var(--surface); border: 1px solid var(--line); border-radius: 26px; padding: 26px 18px; text-align: center; display: grid; gap: 14px; margin-top: 10px; }
+.flash .big { font-family: var(--read); font-size: 38px; font-weight: 700; direction: ltr; }
+.flash .ctx { font-family: var(--read); direction: ltr; font-size: 17px; color: var(--muted); line-height: 1.8; }
+.flash .ctx mark { background: var(--new-bg); color: var(--new-ink); border-radius: 6px; padding: 0 3px; }
+.flash .ans { font-size: 28px; font-weight: 700; color: var(--accent); }
+.opts { display: grid; gap: 10px; }
+.opt { border: 1.5px solid var(--line); background: var(--surface2); border-radius: 16px; padding: 14px; font-size: 18px; font-weight: 600; }
+.opt.ok { background: var(--known); color: #07210F; border-color: transparent; }
+.opt.bad { background: var(--danger); color: #2A0A04; border-color: transparent; }
+.progress { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 8px; }
+.progress i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .25s; }
+
+.scrim { position: fixed; inset: 0; background: rgba(4, 7, 12, .6); z-index: 20; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; background: var(--surface); border-radius: 26px 26px 0 0; border-top: 1px solid var(--line);
+  padding: 18px max(18px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px)); max-height: 86%; overflow-y: auto; }
+.sheet .in { max-width: 640px; margin: 0 auto; display: grid; gap: 12px; }
+.sheet .wordline { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.sheet .word { font-family: var(--read); font-size: 32px; font-weight: 700; direction: ltr; }
+.sheet .meta { color: var(--muted); font-size: 14px; }
+.sheet .ctx { font-family: var(--read); direction: ltr; text-align: left; font-size: 16px; color: var(--muted); }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.seg .btn { min-height: 40px; font-size: 14px; }
+.pulse { color: var(--muted); animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .4; } }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(92px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 14px; z-index: 30; font-size: 14px; max-width: 90%; text-align: center; }
+@media (prefers-reduced-motion: reduce) { .pulse, .progress i { animation: none; transition: none; } }
+</style></head><body>
+
+<div id="app" dir="rtl" lang="ar">
+
+  <section class="view" id="v-home">
+    <div class="top"><div class="logo">مقطع</div><div class="chips"><span class="chip" id="chip-streak"></span><span class="chip" id="chip-words"></span></div></div>
+
+    <div class="card goal" id="goalcard"></div>
+
+    <div class="card" id="newclip">
+      <h2>مقطع يوتيوب جديد</h2>
+      <div class="linkrow">
+        <input class="field" id="yturl" type="url" inputmode="url" placeholder="الصق رابط يوتيوب هنا" aria-label="رابط يوتيوب">
+        <button class="btn main" id="go" type="button">ابدأ</button>
+      </div>
+      <p class="hint">الصق الرابط وبيطلع الفيديو والنص والترجمة لحالهم. الفيديو لازم يكون عليه ترجمة (CC).</p>
+      <details class="manual">
+        <summary>ما اشتغل الرابط؟ الصق النص يدوياً</summary>
+        <input class="field" id="mtitle" placeholder="Title" aria-label="العنوان">
+        <textarea class="field" id="paste" placeholder="Paste the transcript here..." aria-label="نص الفيديو"></textarea>
+        <button class="btn" id="gotext" type="button">اقرأ هذا النص</button>
+      </details>
+    </div>
+
+    <div class="sec">مقاطعي</div>
+    <div class="hist" id="hist"></div>
+  </section>
+
+  <section class="view" id="v-books" hidden>
+    <div class="pagetitle" id="bk-title">الكتب</div>
+    <div id="bk-levels"></div>
+    <div id="bk-list" hidden></div>
+    <div class="row" style="padding-top:14px"><button class="btn main" id="import" type="button">استورد نصاً أو كتاباً</button></div>
+    <p class="hint" style="padding-top:8px">تقدر تلصق أي نص إنجليزي أو ترفع ملف نصي (.txt) وتقرأه بنفس الطريقة.</p>
+  </section>
+
+  <section class="view" id="v-words" hidden>
+    <div id="wbody"></div>
+  </section>
+
+  <section class="view" id="v-review" hidden>
+    <div class="pagetitle">مراجعة</div>
+    <div class="modes" id="modes"></div>
+    <div id="review"></div>
+  </section>
+
+  <section class="view" id="v-trans" hidden>
+    <div class="pagetitle">الترجمة والقاموس</div>
+    <div class="modebar" id="tmode"><button type="button" id="m-tr" class="on">ترجمة</button><button type="button" id="m-dic">قاموس</button></div>
+    <div id="tpane">
+    <div class="langbar"><span id="tl-src">الإنجليزية</span><button class="ibtn on" id="tswap" type="button" aria-label="عكس اللغتين"><svg viewBox="0 0 24 24"><path d="M4 8h14l-3-3"/><path d="M20 16H6l3 3"/></svg></button><span id="tl-dst">العربية</span></div>
+    <div class="tbox">
+      <textarea class="tarea" id="tin" dir="auto" maxlength="2000" placeholder="اكتب أو الصق نصاً..." aria-label="النص المراد ترجمته"></textarea>
+      <div class="trow">
+        <button class="ibtn" id="tmic" type="button" aria-label="إدخال صوتي" hidden><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0"/><path d="M12 18v3"/></svg></button>
+        <button class="ibtn" id="tspkin" type="button" aria-label="استمع للنص"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 010 6"/></svg></button>
+        <button class="ibtn" id="tclear" type="button" aria-label="مسح"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <button class="btn main" id="tgo" type="button">ترجم</button>
+      </div>
+    </div>
+    <div id="tout"></div>
+    <div class="sec" id="thead">آخر ترجماتك</div>
+    <div class="list" id="thist"></div>
+    </div>
+    <div id="dpane" hidden>
+    <div class="dpick" id="dpick"></div>
+    <div class="dsrch"><input class="field" id="din" type="search" dir="auto" placeholder="" aria-label="كلمة للبحث" autocomplete="off" autocapitalize="off"><button class="btn main" id="dgo" type="button">ابحث</button></div>
+    <div class="sugs" id="dsugs"></div>
+    <div id="dout"></div>
+    <div class="sec" id="dhead" hidden>آخر ما بحثت عنه</div>
+    <div class="sugs" id="dhist"></div>
+    </div>
+  </section>
+
+
+  <section class="view" id="v-reader" hidden>
+    <div class="rhead">
+      <button class="btn small ghost" id="rback" type="button" aria-label="رجوع">رجوع</button>
+      <div class="rt" id="rtitle"></div>
+      <div class="row"><button class="btn small ghost" id="fsm" type="button" aria-label="تصغير الخط">A−</button><button class="btn small ghost" id="fsp" type="button" aria-label="تكبير الخط">A+</button></div>
+    </div>
+    <div id="playerwrap" hidden>
+      <div id="player"></div>
+      <div class="vctl">
+        <button class="btn small" id="vprev" type="button">السطر السابق</button>
+        <button class="btn small" id="vb5" type="button">−5 ث</button>
+        <button class="btn small main" id="vpp" type="button">إيقاف</button>
+        <button class="btn small" id="vf5" type="button">+5 ث</button>
+        <button class="btn small" id="vnext" type="button">السطر التالي</button>
+        <button class="btn small ghost" id="vspeed" type="button">السرعة 1x</button>
+        <button class="btn small ghost" id="vloop" type="button">تكرار الجملة</button>
+      </div>
+    </div>
+    <div class="rbar">
+      <button class="btn small main" id="playall" type="button">قراءة صوتية</button>
+      <button class="btn small ghost" id="speed" type="button">السرعة 1x</button>
+      <button class="btn small ghost" id="repeat" type="button">تكرار</button>
+      <button class="btn small on" id="trbtn" type="button">الترجمة: تشغيل</button>
+      <button class="btn small" id="cmbtn" type="button">ألوان المعنى</button>
+      <button class="btn small" id="prebtn" type="button">كلمات جديدة</button>
+    </div>
+    <div class="legend"><span><i style="background:var(--new-bg)"></i>جديدة</span><span><i style="background:var(--learn-bg)"></i>أتعلمها</span><span><i style="background:var(--known)"></i>عرفتها</span></div>
+    <div class="reader" id="reader"></div>
+    <div class="rprog"><i id="rprog"></i></div>
+  </section>
+
+</div>
+
+<nav class="tabs" id="tabs" dir="rtl" lang="ar" aria-label="الأقسام">
+  <div class="tl" role="tablist">
+    <button class="tab" role="tab" data-tab="home" aria-selected="true"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>الرئيسية</button>
+    <button class="tab" role="tab" data-tab="books" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h12v16H6a2 2 0 00-2 2z"/><path d="M4 21V5"/></svg>الكتب</button>
+    <button class="tab" role="tab" data-tab="trans" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 8h14l-3-3"/><path d="M20 16H6l3 3"/></svg>ترجمة</button>
+    <button class="tab" role="tab" data-tab="words" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M5 4h14v16l-7-4-7 4z"/></svg><span>كلماتي<span class="badge" id="badge" hidden>0</span></span></button>
+    <button class="tab" role="tab" data-tab="review" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M8 6V4h8v2"/><path d="M9 12l2 2 4-4"/></svg>مراجعة</button>
+  </div>
+</nav>
+
+<div class="fabbar" id="fabbar" hidden>
+  <button class="btn outline" id="addfolder" type="button">+ مجلد جديد</button>
+  <button class="fab" id="fab" type="button" aria-label="إضافة كلمة">+</button>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" dir="rtl" lang="ar" hidden role="dialog" aria-label="تفاصيل"><div class="in" id="sheet-in"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var PREVIEW = !!window.claude;   // داخل معاينة Claude: الفيديو والسحب التلقائي غير متاحين
+
+  /* ================= المحتوى: كتب ================= */
+  var LEVELS = {
+    A1: { desc: "Beginner · Everyday basics", c: "#46A4FF" },
+    A2: { desc: "Elementary · Simple conversations", c: "#26BFA2" },
+    B1: { desc: "Intermediate · Real-life stories", c: "#9576F5" },
+    B2: { desc: "Upper-intermediate · Longer ideas", c: "#F8A24F" },
+    C1: { desc: "Advanced · Articles and ideas", c: "#E5657A" }
+  };
+  var BOOKS = [
+    { id: "a1-week", lvl: "A1", en: "A Week in My Life", ar: "أسبوع من حياتي", text: "My name is Ahmed. I am twenty-two years old. I live in a small city with my mother, my father and my sister. In this book, I want to tell you about my week. My life is simple, but I like it.\n\nSunday\n\nOn Sunday, I wake up at six o'clock. It is early, but I must go to work. I wash my face and I brush my teeth. Then I go to the kitchen. My mother is there. She makes tea and bread for me. I eat my breakfast and I say, \"Thank you, Mom.\"\n\nI work in a shop. The shop sells phones and small things for the car. I go there by bus. The bus is full in the morning, and I stand for twenty minutes. My boss is a nice man. His name is Mr. Hassan. He says, \"Good morning, Ahmed!\" every day.\n\nAt the shop, I help the people. A woman wants a new phone for her son. I show her three phones. She likes the blue one. It is not expensive. She says, \"I take it.\" I am happy because I sell a phone.\n\nAt five o'clock, I go home. I am tired. I eat dinner with my family. We have rice and chicken. After dinner, I watch television for one hour. Then I go to bed.\n\nMonday\n\nOn Monday, I go to work again. The day is long. The shop is very busy. A lot of people come because it is the first day of the week. I do not have time to drink tea. At twelve o'clock, I eat a sandwich in the back room. My friend Omar works next to my shop. He comes and sits with me. We talk about football. He likes Real Madrid, and I like Barcelona. We always laugh.\n\nIn the evening, I go to the gym. The gym is near my house. I run for fifteen minutes and then I lift some weights. I am not strong, but I want to be strong. After the gym, I take a shower and I feel good.\n\nTuesday\n\nOn Tuesday, I study English. I go to a small school after work. The class starts at six o'clock. My teacher is Miss Laila. She is young and kind. She says, \"Please open your books.\" We read a short text and we write five sentences. Then we speak in pairs. My partner is a man named Yousef. He is thirty years old and he works in a bank. His English is better than mine, but he helps me.\n\nI love the English class. I want to speak English well. I want to watch films without Arabic words. I want to travel to London one day. I think it is a beautiful city. I see pictures of it on my phone: the big clock, the red buses and the river.\n\nAt night, I study my new words. I write them on small cards. Today I learn ten words: house, street, rain, cold, bridge, tea, bus, tall, river and yellow. I say them again and again.\n\nWednesday\n\nOn Wednesday, my sister Noor has a birthday. She is eighteen years old. In the morning, my mother makes a big cake. It is chocolate. It smells very good. My father buys balloons and puts them in the living room. They are red and blue.\n\nAfter work, I buy a gift for Noor. I choose a small bag. It is white and it has a gold line. I think she will like it. At home, the family waits for me. We all sing, \"Happy birthday!\" Noor is so happy. She opens the gift and she says, \"I love it, Ahmed!\" She hugs me.\n\nWe eat cake and drink juice. My grandmother also comes. She is old, but she is very funny. She tells a story about her school. She says, \"In my school, we did not have computers. We had only a pen and a small book.\" We all laugh a lot.\n\nThursday\n\nOn Thursday, the weather is bad. It rains all day. The streets are wet and the sky is gray. I take an umbrella, but the wind is strong, and I get wet. At the shop, there are not many people. I clean the glass and I put the phones in order.\n\nMr. Hassan says, \"Ahmed, you can go home early today.\" I say, \"Thank you, sir.\" I walk to the bus stop. I wait for twenty minutes. The bus is late. I am cold, and I want a hot drink.\n\nAt home, my father is in the living room. He reads a newspaper. I sit next to him and we drink tea together. He asks, \"How is your English?\" I say, \"It is better every week.\" He smiles and says, \"Good. A man who learns is a strong man.\" I like this sentence.\n\nFriday\n\nFriday is my favorite day. I do not work. I wake up late, at eight o'clock. I eat a big breakfast: eggs, cheese, bread and olives. Then I go to the mosque with my father and my uncle. After the prayer, we visit my grandmother. She lives in an old house near the market. The house has a big garden with many trees. She makes lunch for all of us. We eat on the floor in the garden. The food is hot and it is delicious.\n\nIn the afternoon, the children play and the old people talk. I sit under a tree with my cousin Faisal. He is twelve years old. He asks me, \"Ahmed, can you teach me English?\" I say, \"Yes, of course.\" I teach him the colors. I point to a flower and say, \"Red.\" He says, \"Red.\" I point to the sky and say, \"Blue.\" He says, \"Blue.\" He learns fast. He is a clever boy.\n\nIn the evening, we drive home. The streets are quiet and the lights are on. I feel calm and happy.\n\nSaturday\n\nOn Saturday, I meet my friends. We go to the park near the river. We play football for two hours. There are ten players, five in each team. I am in the blue team. Omar is in the red team. He is a good player, and his team wins three to two. I am a little sad, but it is only a game. After the game, we are very hungry and very thirsty. We go to a small restaurant and we eat burgers and chips. We drink cold water and juice.\n\nThen we sit on the grass and talk. Omar says, \"Next week, let us go to the sea.\" Everyone says yes. The sea is two hours from our city. We want to swim and make a fire on the beach. I want to take photos, too.\n\nAt night, I come home and I write in my small book. I write about the week: my work, my class, my sister's birthday, my grandmother's house and my friends. I read the sentences and I am proud. I can write in English!\n\nThe Next Week\n\nNow it is Sunday again. I wake up at six o'clock. The sun is not up yet, but my mother is in the kitchen. The smell of tea and bread is in the house. I smile.\n\nSome people want a big life with big things. I want a good life with small things: a family, a job, a friend and a book. Every day, I learn a little more. Every day, I try to be a better man.\n\nMaybe next year I will be in London. Maybe I will see the big clock and the red buses. Maybe I will speak English with a man in the street and he will say, \"Your English is very good!\" I think about this and I smile again.\n\nBut today, I am here. I drink my tea. I eat my bread. I say, \"Thank you, Mom.\" And I go to work.\n\nThank you for reading about my week. I hope your week is good, too. If you learn ten new words every week, you will have five hundred words in one year. This is a good start. Learn a little every day, and you will see the result." },
+    { id: "a2-camp", lvl: "A2", en: "The Summer Camp", ar: "مخيم الصيف", text: "Chapter One: The Invitation\n\nLast year, in July, my cousin Saad called me. He said, \"Do you want to come to a summer camp with me? It is in the mountains and it lasts ten days.\" At first, I was not sure. I had never slept away from my family for so long. But Saad was excited, and he said that the camp had swimming, football, climbing and a big fire every night. In the end, I said yes.\n\nMy mother helped me prepare. We made a long list: warm clothes, a flashlight, a small bag for the day, a hat, sun cream and some medicine. She also put a photo of our family in my suitcase. I said, \"Mom, I am not a child.\" She smiled and answered, \"I know. It is for me, not for you.\"\n\nChapter Two: The Journey\n\nWe left on a Sunday morning. A large white bus took us from the city. There were about forty boys on the bus, and most of them were my age. Some of them were singing, and others were sleeping. I sat next to the window. The road went higher and higher, and soon I could see green valleys and small villages. The air became cooler.\n\nAfter four hours, we arrived. The camp was in a wide field between two mountains. There were twenty tents, a kitchen, a small clinic and a big wooden hall. A man with a loud voice welcomed us. His name was Captain Rashid, and he had been the leader of the camp for fifteen years. He told us the rules: wake up at six, keep the camp clean, help each other and never go to the river alone.\n\nSaad and I shared a tent with two other boys, Ali and Tariq. Ali was quiet and he liked drawing. Tariq was very funny and he never stopped talking. On the first night, we could not sleep because Tariq told us scary stories about the mountain. I put my blanket over my head, but I was also laughing.\n\nChapter Three: The First Days\n\nThe mornings were hard. At six o'clock, Captain Rashid blew a whistle, and we all ran outside in the cold. We did exercises for twenty minutes, and then we had breakfast in the hall. There was bread, cheese, eggs and sweet tea. After breakfast, each group had a different activity.\n\nOn the second day, we learned to climb. A young instructor named Mazen tied a rope around my waist and showed me how to hold the rock. I was afraid. The wall was very high, and my hands were shaking. Mazen said, \"Do not look down. Look at the next place for your hand.\" I followed his advice and, step by step, I reached the top. When I looked around, I could see the whole camp. I felt like a bird. All the boys clapped for me, and my fear disappeared.\n\nOn the third day, we went swimming in a clear lake. The water was very cold, but after a few minutes it felt wonderful. Ali did not know how to swim, so Mazen gave him a life jacket and taught him slowly. By the end of the afternoon, Ali was moving his arms and laughing like a child.\n\nChapter Four: The Problem\n\nOn the fifth day, something went wrong. We were walking on a mountain path with Captain Rashid, and the weather suddenly changed. Dark clouds came, and the wind became strong. Then the rain started. In ten minutes, the path was like a small river.\n\nCaptain Rashid told us to stay together and walk slowly. But Tariq, who was at the back, slipped and fell. He hurt his ankle and could not stand up. He was pale and he said, \"I am fine,\" but we all knew he was not.\n\nSaad and I helped him. We put his arms over our shoulders and walked step by step, while Mazen went ahead to call the clinic. It took us almost an hour to reach the camp. The nurse looked at Tariq's ankle and said it was not broken, only badly hurt. He needed to rest for three days.\n\nThat night, we sat around the fire in the hall, and everyone was quiet. Captain Rashid said, \"Today you were brave and you were kind. This is the real meaning of a camp.\" I felt proud of Saad and of myself.\n\nChapter Five: A Friend in Need\n\nFor the next three days, Tariq stayed in the tent, and we took care of him. We brought him food, we told him jokes and we taught him a card game. Ali drew a funny picture of Tariq with a big bandage and a crown. Tariq laughed so much that he forgot the pain.\n\nOne evening, Tariq said something I will never forget. He said, \"At home, I have many friends, but I do not know if they are real friends. Here, you stayed with me when I could not do anything.\" Nobody answered. We only sat there, and I think we all understood.\n\nWhen his ankle was better, Tariq came back to the activities. He could not climb or play football, but he helped Captain Rashid with the maps and the tickets for the games. He said that this was also important.\n\nChapter Six: The Competition\n\nOn the eighth day, there was a big competition between the groups. We played football, ran a race, solved a puzzle and made a tent as fast as possible. Our group was called the Eagles. Our rivals, the Lions, were stronger, and they won the football match easily.\n\nBut in the tent competition, we were better. Ali, who was calm and careful, gave us a plan, and each person had a job. We finished before everybody else, and our tent stood perfectly. The Eagles screamed with joy. In the end, the Lions won by only two points, but nobody was angry. Both groups shook hands and shared a big dinner: grilled chicken, rice, salad and fruit.\n\nCaptain Rashid gave a small gold star to every boy. He said, \"Winning is nice, but learning to work together is more important.\" I kept my star in my pocket for many weeks.\n\nChapter Seven: The Last Night\n\nOn the last night, we made the biggest fire of the camp. We sat in a circle, and each boy had to say one thing he had learned. Some boys said, \"I learned to climb.\" Others said, \"I learned to swim\" or \"I learned to cook.\" When it was my turn, I stood up and said, \"I learned that I can do things that I was afraid of. And I learned that friends are more important than games.\"\n\nNobody laughed. Captain Rashid nodded slowly. Then Tariq started a song, and we all sang together until midnight. The stars were bright above the mountains, and I did not want the night to end.\n\nChapter Eight: Going Home\n\nThe next morning, we packed our bags and cleaned the tents. The bus was waiting. Many boys were sad, and some of them were crying a little. We exchanged phone numbers and promised to meet again.\n\nOn the road home, I looked at the mountains for the last time. I was tired, dirty and very happy. When the bus arrived in the city, my mother was waiting at the station. She ran to me and hugged me for a long time. She said, \"You look taller.\" I answered, \"Maybe I am, Mom.\"\n\nThat evening, I told my family everything. I told them about the rock wall, the cold lake, the storm and the fire. My father listened carefully and asked many questions. When I finished, he said, \"Next year, I will come with you.\" We all laughed.\n\nToday, one year later, I still talk to Saad, Ali and Tariq every week. We are planning to go to the same camp again this summer. This time, I will help the new boys, as Mazen helped me. I know now that every big thing begins with a small step, and sometimes a rope around your waist and a friend beside you are all you need." },
+    { id: "b1-city", lvl: "B1", en: "A New City", ar: "مدينة جديدة", text: "Part One: The Decision\n\nWhen the email arrived on a Tuesday morning, I read it three times before I believed it. An engineering company in Riyadh was offering me a job, with a good salary and a contract for two years. I had been looking for work for almost eight months, sending applications to dozens of companies and receiving only polite refusals. Now, suddenly, someone wanted me.\n\nThe problem was that I lived in a small town in the south, six hundred miles away from the capital. I had never lived anywhere else. My family, my friends and everything familiar were here. That evening, I sat with my parents and explained the situation. My mother was silent for a while, and then she said, \"Your father and I did not raise you to stay in one place. Go, and call us every day.\" My father only nodded, but I noticed that he turned his face away.\n\nPart Two: Arriving\n\nTwo weeks later, I arrived in the city with two suitcases and an address written on a piece of paper. The traffic was heavier than anything I had imagined, and the buildings seemed to touch the sky. The taxi driver, a talkative man from Pakistan, asked where I was from. When I told him, he laughed and said, \"Everyone in this city is from somewhere else. You will fit in quickly.\"\n\nMy apartment was small, on the fourth floor of an old building. It had a bedroom, a tiny kitchen and a balcony that looked onto a busy street. The first night, I could not sleep. The noise of cars and the strange smell of the air kept me awake. I lay in bed, wondering whether I had made a terrible mistake.\n\nPart Three: The First Month\n\nWork was both exciting and exhausting. My team consisted of six engineers, and they all seemed more experienced than me. In meetings, I hardly spoke, afraid of saying something foolish. My manager, a calm woman named Ms. Reem, noticed this. One afternoon she called me into her office and said, \"I did not hire you because you know everything. I hired you because you learn quickly. Ask questions, and do not apologize for it.\"\n\nHer words changed my attitude. The next day, I asked a colleague to explain a system I did not understand, and he spent an hour showing me every detail. By the end of the month, I was taking part in discussions, and sometimes I even disagreed with my colleagues politely.\n\nOutside of work, however, I felt lonely. I ate dinner alone most evenings, watching videos on my phone. I walked home through streets full of people, and yet I did not know a single one of them. I called my mother every night, and she always asked, \"Are you eating well?\" I always answered yes, even when I had eaten only bread and tea.\n\nPart Four: The Neighbor\n\nThings began to change because of a small accident. One Friday, I was carrying a bag of groceries up the stairs when the handle broke, and oranges rolled in every direction. A door opened, and a young man looked out. He laughed, and then he helped me collect the fruit. His name was Bader, and he lived in the apartment next to mine.\n\n\"You must be new,\" he said. \"Nobody carries oranges without a plan.\" I explained that I had arrived a month ago and knew nobody. He said, \"That is easy to fix. Come to my place tonight. A few friends are visiting.\"\n\nI almost refused out of shyness, but I remembered Ms. Reem's advice: do not apologize, ask, and say yes. That evening, I knocked on his door with a box of sweets. Inside, there were five people sitting on the floor around a large tray of rice and lamb. They welcomed me as if I had always been part of the group. We talked until midnight about football, politics, work and the best places to eat in the city. I walked back to my apartment feeling lighter than I had in weeks.\n\nPart Five: Learning the City\n\nFrom that night on, my life improved step by step. Bader and his friends showed me the city: the old market where you can find spices and perfumes, the quiet park where families gather in the evening, and a small cafe that serves the best coffee I have ever tasted. They also taught me practical things. Which roads to avoid at five o'clock. Which bus goes directly to the office. Where to buy cheap furniture.\n\nI also started a new habit. Every Saturday, I picked a neighborhood I did not know and walked through it for two hours without a map. Sometimes I got lost, but this was part of the pleasure. I discovered a street of bookshops, a garden hidden behind a mosque and an old man who sold fresh bread from the back of his car. Slowly, the city stopped feeling like a threat and started to feel like a place I was getting to know.\n\nPart Six: A Difficult Phone Call\n\nIn the fifth month, my father became ill. It was not serious, but he needed to stay in hospital for a few days. When my sister told me, I wanted to leave everything and take the first flight home. I explained the situation to Ms. Reem, expecting her to refuse. Instead, she said, \"Family comes first. Go, and we will manage here.\"\n\nI spent a week with my parents. My father looked tired but cheerful, and he asked many questions about my work. He listened with obvious pride when I described the projects I was handling. On the last evening, he said, \"When you left, I was afraid we would lose you. Now I understand that you are not leaving us. You are growing.\"\n\nI returned to the city with a different feeling. Before, it had been a place where I worked. Now it was a place where I had a life, and a family far away that supported me.\n\nPart Seven: One Year Later\n\nIt has been a year since that email arrived. I have been promoted, and I now lead a small project of my own. Bader has become one of my closest friends, and last month he came with me to visit my family. My mother cooked for three days and treated him like a son.\n\nSometimes I think about the version of myself who sat in that small apartment on the first night, afraid and homesick. I would like to tell him that the fear is natural, and that it passes. I would tell him that a new city is not something you conquer; it is something you slowly learn, one street and one friendship at a time.\n\nIf you ever have the chance to start again in a place where nobody knows you, I hope you take it. You may feel lonely at first, and you may doubt your decision. But if you stay open, ask for help and say yes to invitations, you may discover, as I did, that home is not only the place where you were born. It can also be a place you choose." },
+    { id: "b2-habits", lvl: "B2", en: "The Quiet Power of Habits", ar: "القوة الهادئة للعادات", text: "The Invisible Architecture of Daily Life\n\nMost of us like to believe that our days are shaped by conscious decisions. We imagine ourselves weighing options, considering consequences and choosing the best path. Yet researchers who study behavior have found that a surprisingly large part of what we do each day, perhaps as much as forty percent, is not decided at all. It is repeated automatically, from the moment we reach for the phone after waking up to the route we take to work. These repeated actions are habits, and together they form an invisible architecture that supports, or quietly undermines, the lives we are trying to build.\n\nUnderstanding how habits work is therefore not an academic curiosity. It is one of the most practical forms of self-knowledge available to us.\n\nHow a Habit Forms\n\nPsychologists generally describe a habit as a loop with three parts. First comes a cue, a trigger that tells the brain to start a behavior. Next comes the routine, the behavior itself. Finally comes a reward, the benefit that persuades the brain this loop is worth remembering. When the cycle repeats often enough, the connection becomes so strong that the behavior begins almost without thought.\n\nConsider a common example. A person feels stressed in the afternoon, which is the cue. She walks to the kitchen and eats a biscuit, which is the routine. For a few minutes she feels calmer, which is the reward. After several weeks, the sensation of stress alone is enough to send her toward the kitchen, even if she is not hungry. She does not remember deciding to eat; her body has simply learned a pattern.\n\nWhat makes this process powerful is that the brain does not judge whether the habit is good or bad. It only recognizes that the loop has been rewarded. This explains why harmful habits can be so persistent, and why simply telling ourselves to stop rarely works.\n\nWhy Willpower Is Not Enough\n\nA common mistake is to assume that people who succeed in changing their lives possess unusual willpower. Studies suggest the opposite. Those who maintain healthy routines are often the ones who rely least on self-control, because they have arranged their environment so that the right choice is the easy choice. They keep fruit on the table and sweets in a high cupboard. They place their running shoes next to the door. They turn off notifications before they begin working.\n\nWillpower, in contrast, behaves like a battery that gradually drains throughout the day. By the evening, after hours of decisions, resisting temptation becomes much more difficult. Anyone who has promised to avoid snacks after a stressful day, only to find an empty packet an hour later, understands the problem.\n\nThe Importance of Starting Small\n\nIf willpower is limited, the sensible strategy is to demand very little of it. Experts therefore recommend that new habits begin in a form so small that it feels almost ridiculous. Instead of promising to exercise for an hour, one might commit to putting on running clothes and stepping outside. Instead of aiming to write a chapter, one might write a single paragraph.\n\nThe logic is simple. Once the behavior is easy to start, repetition becomes possible, and repetition is what builds the loop in the brain. Moreover, small successes create a feeling of progress, which encourages the person to continue. It is common for those who begin with five minutes to find, after a few weeks, that they are naturally doing twenty.\n\nChanging Identity, Not Just Behavior\n\nOne of the most interesting ideas in recent research concerns identity. People who say \"I am trying to quit smoking\" may have a harder time than those who say \"I am not a smoker.\" The difference seems small, but it reflects a deeper shift. In the first case, the person is fighting a part of themselves; in the second, they are expressing who they already are.\n\nThis suggests that lasting change comes from small actions that act as votes for a new identity. Each time a person writes, they cast a vote for being a writer. Each time they choose water instead of a sugary drink, they vote for being a healthy person. No single vote decides the outcome, but over months, the majority becomes clear.\n\nThe Role of Social Environment\n\nHabits are also contagious. Studies of large communities have shown that people are more likely to gain weight if their close friends do, and more likely to quit smoking if their friends and family quit. We tend to adopt the norms of the groups around us, often without realizing it. For this reason, anyone trying to change their behavior should consider carefully who they spend time with. Joining a group where the desired behavior is normal, such as a reading club or a running team, can make the change feel natural rather than forced.\n\nDealing with Failure\n\nEven with the best plan, everyone misses a day. The danger lies not in the failure itself but in the way we interpret it. Some people think, \"I have already broken my streak, so there is no point in continuing.\" Researchers call this the \"what the hell effect,\" and it explains why a single slip can turn into a complete collapse.\n\nA healthier approach is to adopt a simple rule: never miss twice. One missed day is an accident; two is the beginning of a new habit. By returning quickly, even in a reduced form, the person keeps the identity intact and avoids the guilt that often leads to giving up entirely.\n\nPatience and Time\n\nPopular media sometimes claims that a habit takes twenty-one days to form. The truth is far more varied. One well-known study found that the average time was about two months, with a range from eighteen days to more than eight months, depending on the person and the complexity of the behavior. This should be encouraging rather than discouraging. If change is slow, then slowness is not evidence of failure; it is the normal rhythm of learning.\n\nA Practical Conclusion\n\nFor anyone who wants to improve a part of their life, the research offers a few clear lessons. Identify the cue that starts the behavior you wish to change. Make the good choice easier and the bad choice harder. Begin with a step so small that it is impossible to refuse. Think of each action as a vote for the person you want to become. Surround yourself with people who share your direction. And when you fail, return without drama.\n\nNone of these suggestions is dramatic, and that is precisely the point. The most powerful changes in our lives rarely arrive in a single moment of inspiration. They accumulate quietly, in the small repeated decisions that no one else sees. Over time, these decisions become habits, the habits become character, and the character shapes the life we eventually live." },
+    { id: "c1-attention", lvl: "C1", en: "The Art of Paying Attention", ar: "فن الانتباه", text: "A Scarce Resource\n\nThere is a curious paradox at the heart of modern life. Never before have human beings had access to so much information, and yet rarely have so many people complained that they cannot concentrate. We read headlines without reading articles, skim messages without absorbing them, and move from one screen to another with a restlessness that seems almost involuntary. Attention, once taken for granted as a basic faculty, has quietly become one of the scarcest and most contested resources of our age.\n\nThe economist Herbert Simon anticipated this situation as early as 1971. \"A wealth of information,\" he observed, \"creates a poverty of attention.\" What was then a perceptive remark has since become a daily reality. Every application on our phones, every website and every platform competes for the same limited commodity: a few moments of our consciousness. The more effectively they capture it, the more profitable they become, and the more fragmented our inner lives grow.\n\nWhat Attention Actually Does\n\nIt is easy to treat attention as a mere tool for completing tasks, but its role is far more fundamental. What we attend to largely determines what we experience. Two people can walk down the same street, and one will notice the architecture, the faces and the changing light, while the other, absorbed in a screen, will remember nothing. In a very real sense, our lives consist of whatever we have paid attention to.\n\nThe philosopher Simone Weil went further, suggesting that attention is the rarest and purest form of generosity. To listen to another person fully, without planning a reply or glancing at a device, is to offer something of genuine value. Conversely, the experience of being half-listened to leaves a peculiar sense of insignificance, even when no one has said anything unkind.\n\nThe Cost of Switching\n\nContrary to popular belief, the human brain does not truly perform several demanding tasks at once. What we call multitasking is, in fact, rapid switching, and each switch carries a cost. Experiments have repeatedly shown that people who interrupt their work to check messages take considerably longer to finish, make more errors and report greater fatigue. Even after returning to the original task, part of the mind remains elsewhere, a phenomenon researchers describe as attention residue.\n\nPerhaps more troubling is the evidence that habitual switching may alter our capacities. Those who constantly divide their attention appear to become less able to filter out irrelevant stimuli, not more. The skill we believe we are practicing is, ironically, the one we are eroding.\n\nDeep Work and Its Rewards\n\nAgainst this background, the ability to concentrate for long periods has become both rare and valuable. The writer Cal Newport has called it deep work: sustained, undistracted effort on a cognitively demanding task. Such effort, he argues, produces the most significant achievements, whether in science, art or craftsmanship, and it also yields a certain satisfaction that shallow busyness can never provide.\n\nInterestingly, many accomplished people share a similar approach. They protect their mornings for demanding work, switch off notifications and work in a quiet place with a clear objective. They do not necessarily possess greater discipline than the rest of us; rather, they have arranged their surroundings so that focus becomes the default condition rather than a heroic exception.\n\nBoredom as a Hidden Ally\n\nOne consequence of our constant connectivity is that we almost never experience boredom. Every idle moment, in a queue or on a train, is immediately filled with entertainment. Yet psychologists have found that boredom plays a constructive role. When the mind has nothing to do, it begins to wander, to connect distant memories and to produce unexpected ideas. Many creative breakthroughs, according to those who experienced them, arrived not during intense effort but in the quiet intervals afterward: during a walk, a shower or a long journey.\n\nBy eliminating these intervals, we may unintentionally be depriving ourselves of the mental conditions in which reflection and originality flourish. It would be an exaggeration to claim that technology has ruined our thinking, but it is reasonable to suggest that we need to preserve some space for silence.\n\nTraining the Mind\n\nThe encouraging news is that attention can be trained. Contemplative traditions have understood this for centuries, and modern studies of meditation confirm that regular practice can improve the ability to sustain focus and to notice when the mind has drifted. The goal is not to achieve a permanently empty mind, which is neither possible nor desirable, but to develop the habit of gently returning to the chosen object each time the mind wanders.\n\nPractical approaches need not be elaborate. Reading a physical book for twenty minutes without interruption is a form of training. So is having a meal without a screen, or taking a walk without headphones. Each of these small exercises strengthens the capacity that our environment tends to weaken.\n\nDesigning Our Surroundings\n\nTraining alone is insufficient if our environment is designed to defeat us. Since powerful companies employ teams of specialists to capture our attention, it is unrealistic to rely on willpower alone. A more sensible strategy is to reshape the environment: removing unnecessary applications, turning off non-essential alerts, leaving the phone in another room while working and setting specific times for checking messages.\n\nThese adjustments may seem trivial, yet their cumulative effect is considerable. They transform the question from \"How can I resist this temptation?\" into \"How can I avoid meeting it in the first place?\" The second question is far easier to answer.\n\nAn Ethical Dimension\n\nFinally, it is worth recognizing that attention has an ethical dimension. What we choose to notice shapes what we care about, and what we care about shapes how we act. A society whose members are perpetually distracted may struggle to address complex problems that require patience, nuance and sustained thought. Climate change, inequality and public health are not issues that can be understood in a handful of seconds.\n\nIn this respect, learning to pay attention is not merely a personal project of self-improvement. It is a civic responsibility, a way of remaining capable of understanding the world and one another.\n\nA Closing Thought\n\nNone of this requires abandoning technology or retreating to a remote cabin. The point is to use our tools deliberately rather than being used by them. We might begin with a modest experiment: choose one activity each day and give it our complete attention. It could be a conversation, a page of a book, or a cup of tea. Observe how different it feels.\n\nThe poet Mary Oliver once wrote that attention is the beginning of devotion. Whether or not one shares her spiritual vocabulary, the insight remains compelling. To attend closely is to say that something matters, and a life in which more things are allowed to matter is, almost certainly, a richer one." },
+    { id: "a1-day", lvl: "A1", en: "My Day", ar: "يومي", text: "I wake up at seven o'clock. I wash my face and brush my teeth. Then I drink a cup of tea. I eat bread and eggs for breakfast. After breakfast, I go to work by bus. I work from nine to five. At lunch, I eat rice and chicken with my friend. In the evening, I go home. I cook dinner and watch TV. I go to bed at ten o'clock. I like my day." },
+    { id: "a1-market", lvl: "A1", en: "At the Market", ar: "في السوق", text: "Sara goes to the market on Friday. The market is big and busy. She wants some fruit. She buys three red apples and a yellow banana. The man says, \"Good morning! How are you?\" Sara says, \"I am fine, thank you. How much are the apples?\" \"Two dollars,\" he says. She also buys milk, bread and a little cheese. She pays and says, \"Thank you. Goodbye!\" Then she walks home with her bag." },
+    { id: "a1-family", lvl: "A1", en: "My Family", ar: "عائلتي", text: "I have a small family. My father is a teacher. He is tall and kind. My mother is a nurse. She works at a hospital. I have one brother and one sister. My brother is ten years old. He likes football. My sister is six. She likes to draw. On Sundays, we eat lunch together. We talk and laugh. I love my family very much." },
+    { id: "a1-cat", lvl: "A1", en: "The Lost Cat", ar: "القطة الضائعة", text: "Tom has a white cat. Her name is Luna. One morning, Luna is not at home. Tom looks in the kitchen. He looks in the garden. He looks under the bed. No Luna. Tom is sad. He walks in the street and asks his neighbors. \"Do you see my cat?\" he says. A girl says, \"Yes! She is on the roof of my house.\" Tom goes there. Luna is on the roof. She says, \"Meow.\" Tom is very happy." },
+    { id: "a1-beach", lvl: "A1", en: "A Day at the Beach", ar: "يوم على الشاطئ", text: "It is a hot Saturday. Ali and his friends go to the beach. The water is blue and clean. The sun is bright. They put their towels on the sand. Ali swims in the sea. His friend Omar plays football on the beach. Another friend makes a big sand castle. They eat sandwiches and drink cold juice. In the evening, the sun goes down. The sky is orange and pink. They are tired but happy." },
+    { id: "a1-friend", lvl: "A1", en: "My New Friend", ar: "صديقي الجديد", text: "Today is my first day at a new school. I feel nervous. I do not know anyone. In class, a boy sits next to me. He smiles and says, \"Hi, my name is Adam.\" I say, \"Hello, I am Yusuf.\" Adam asks, \"Do you like games?\" \"Yes, I do,\" I say. At break, we play together. We eat lunch together too. Now I am not nervous. I have a new friend." },
+    { id: "a2-train", lvl: "A2", en: "The Train Trip", ar: "رحلة القطار", text: "Last summer, I took a train to the north of the country. I woke up early and arrived at the station at six. The train was a little late, so I bought a coffee and waited. When it came, I found my seat next to the window. The journey took four hours. I watched green fields, small villages and tall mountains. A kind old woman sat opposite me. She told me about her grandchildren and gave me an orange. When we arrived, my cousin was waiting for me with a big smile. It was the best trip of my life." },
+    { id: "a2-cook", lvl: "A2", en: "Learning to Cook", ar: "تعلّم الطبخ", text: "My mother always cooked for us, so I never learned. Last month I moved to a new city and had to cook for myself. My first dinner was a disaster. I burned the rice and forgot the salt in the soup. I felt very sad, but I did not give up. I watched videos online and wrote down every step. Now I can make pasta, grilled chicken and a good salad. Yesterday I invited my neighbors for dinner. They said the food was delicious. I was so proud of myself." },
+    { id: "a2-call", lvl: "A2", en: "A Phone Call", ar: "مكالمة هاتفية", text: "Nora was studying when her phone rang. It was her brother, who lives in another country. \"Hello, Nora! Are you busy?\" he asked. \"A little, but I always have time for you,\" she said. He told her he had got a new job and would visit the family in June. Nora was so excited that she forgot about her homework. They talked for an hour about food, weather and old memories. After the call she felt happy and a little homesick. She opened her calendar and counted the days until June." },
+    { id: "b1-letter", lvl: "B1", en: "The Letter", ar: "الرسالة", text: "When Daniel found the old envelope in his grandfather's desk, he almost threw it away. The paper was yellow, and the handwriting was hard to read. But something made him stop. He sat down, opened it carefully and began to read. His grandfather had written the letter forty years ago to a friend he had never been able to thank. In it, he described how the friend had helped him start a small shop when nobody else believed in him. Daniel realised that he knew very little about the man who had raised him. The next morning, he decided to find the friend's family. It would not be easy, but he felt that it was the right thing to do." },
+    { id: "b1-run", lvl: "B1", en: "Running Again", ar: "الجري من جديد", text: "After the accident, Layla thought she would never run again. The doctors said her knee needed six months to heal, and she spent most of that time feeling frustrated. At first she could only walk for five minutes before the pain returned. Instead of giving up, she made a plan: a little more each day, and no comparing herself to the person she used to be. Slowly, the walks became longer, and then she tried to jog. Her first race back was only three kilometres, yet she cried at the finish line. What she learned was simple: progress is not always fast, but it is real if you keep going." },
+    { id: "b2-town", lvl: "B2", en: "The Quiet Revolution", ar: "الثورة الهادئة", text: "For decades, the small town of Marlow depended on a single factory. When it closed, many people assumed the town would slowly disappear. Instead, something unexpected happened. A group of former workers, who barely knew anything about technology, began repairing old computers in a garage. Word spread, and soon schools and local businesses were bringing them equipment. Within three years, the garage had become a cooperative employing sixty people. Economists later pointed out that the success owed less to money than to trust: everyone knew everyone, and nobody was willing to let their neighbours fail. The story is a reminder that resilience is often built quietly, long before a crisis demands it." }
+  ];
+
+  /* ================= الحالة والتخزين ================= */
+  var LSW = "maqta.words.v1", LSS = "maqta.state.v1";
+  var words = {};
+  var S = { history: [], books: {}, custom: [], fs: 2, days: [], decks: [], prog: {}, thist: [], pron: {}, gen: [], cm: false, dh: [], dc: {}, due: {}, goal: 10, dayn: {} };
+  var FS = [17, 19, 21, 24, 28];
+  function loadAll() {
+    try { var w = JSON.parse(localStorage.getItem(LSW) || "{}"); if (w && typeof w === "object") words = w; } catch (e) {}
+    try { var v = JSON.parse(localStorage.getItem(LSS) || "null"); if (v && typeof v === "object") { for (var k in v) S[k] = v[k]; } } catch (e) {}
+  }
+  function saveWords() { try { localStorage.setItem(LSW, JSON.stringify(words)); } catch (e) {} }
+  function saveState() { try { localStorage.setItem(LSS, JSON.stringify(S)); } catch (e) {} }
+  function dayKey(d) { return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
+  function markDay() { var k = dayKey(new Date()); if (S.days.indexOf(k) < 0) { S.days.push(k); S.days = S.days.slice(-400); saveState(); renderChips(); } }
+  function streak() {
+    var d = new Date(), n = 0, first = true;
+    while (n < 400) {
+      if (S.days.indexOf(dayKey(d)) >= 0) { n++; first = false; }
+      else if (!first || n > 0) break;
+      else first = false;
+      d.setDate(d.getDate() - 1);
+    }
+    return n;
+  }
+
+  /* ================= أدوات ================= */
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function keyOf(w) { return w.toLowerCase().replace(/’/g, "'"); }
+  function toast(msg) { var t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(function () { t.hidden = true; }, 2800); }
+  function count() { return Object.keys(words).length; }
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function stateOf(w) { var l = w.level || 0; return l >= 5 ? "known" : (l >= 2 ? "learn" : "new"); }
+  function speak(t) { try { stopSpeech(); var u = new SpeechSynthesisUtterance(t); u.lang = "en-US"; u.rate = 0.9; speechSynthesis.speak(u); } catch (e) { toast("النطق غير متاح على هذا الجهاز"); } }
+
+  /* ================= Claude ================= */
+  var sampleFn = null, lookCtl = null;
+  function headers() { var h = { "content-type": "application/json" }, c = ""; try { c = localStorage.getItem("maqta.code") || ""; } catch (e) {} if (c) h["x-code"] = c; return h; }
+  function askCode() { var c = window.prompt("اكتب رمز الدخول"); if (c) { try { localStorage.setItem("maqta.code", c.trim()); } catch (e) {} return true; } return false; }
+  function askRaw(prompt, signal) {
+    return fetch("/api/ask", { method: "POST", headers: headers(), body: JSON.stringify({ prompt: prompt }), signal: signal }).then(async function (r) {
+      if (r.status === 401) { if (askCode()) return askRaw(prompt, signal); throw { code: "not_granted" }; }
+      if (!r.ok) throw { code: "upstream_error" };
+      return (await r.json()).text;
+    }).catch(function (e) { if (e && e.name === "AbortError") throw { code: "cancelled" }; throw e && e.code ? e : { code: "upstream_error" }; });
+  }
+  function parseLoose(t) {
+    try { return JSON.parse(t); } catch (e) {}
+    var i = Math.min.apply(null, [t.indexOf("["), t.indexOf("{")].filter(function (x) { return x >= 0; }));
+    var j = Math.max(t.lastIndexOf("]"), t.lastIndexOf("}"));
+    if (isFinite(i) && j > i) return JSON.parse(t.slice(i, j + 1));
+    throw { code: "invalid_json", text: t };
+  }
+  function makeShim() {
+    var f = function (prompt, opts) { opts = opts || {}; return askRaw(prompt, opts.signal).then(function (t) { if (opts.onText) opts.onText({ text: t, delta: t }); return { text: t }; }); };
+    f.json = function (prompt, opts) { opts = opts || {}; return askRaw(prompt, opts.signal).then(parseLoose); };
+    return f;
+  }
+  async function initAI() {
+    try { var c = window.claude; if (c && c.use) { var s = await c.use("sample"); if (s) { sampleFn = s; return; } } } catch (e) {}
+    sampleFn = makeShim();
+  }
+
+  /* ================= التنقل ================= */
+  var view = "home", returnTo = "home";
+  function showView(name) {
+    ["home", "books", "trans", "words", "review", "reader"].forEach(function (n) { $("#v-" + n).hidden = n !== name; });
+    document.querySelectorAll(".tab").forEach(function (t) { t.setAttribute("aria-selected", String(t.dataset.tab === name)); });
+    $("#tabs").hidden = name === "reader"; $("#fabbar").hidden = name !== "words";
+    $(".rprog").style.display = name === "reader" ? "" : "none";
+    view = name; window.scrollTo(0, 0);
+    if (name === "home") renderHome();
+    if (name === "books") renderBooks();
+    if (name === "words") renderWords();
+    if (name === "trans") renderTrans();
+    if (name === "review") startReview();
+  }
+  document.querySelectorAll(".tab").forEach(function (t) { t.addEventListener("click", function () { if (t.dataset.tab === "books") booksFilter = null; if (t.dataset.tab === "words") wv.deck = null; showView(t.dataset.tab); }); });
+
+  /* ================= الرئيسية ================= */
+  function renderChips() {
+    var n = streak();
+    $("#chip-streak").textContent = n ? n + " يوم متتالي" : "ابدأ اليوم";
+    $("#chip-words").textContent = count() + " كلمة";
+  }
+  function bookStat(id) { return S.books[id] || { pos: 0, total: 0, done: false }; }
+  /* ---- هدف اليوم والمراجعة بالتكرار المتباعد ---- */
+  var rv = { mode: "cards", src: "mine", queue: [], i: 0, score: 0, revealed: false, locked: false };
+  var INTERVALS = [0.007, 1, 2, 4, 8, 16];
+  function dueKey(w) { return w.deck ? progKey(w.deck, w.key) : "mine|" + w.key; }
+  function srs(w) {
+    var k = dayKey(new Date()); S.dayn[k] = (S.dayn[k] || 0) + 1;
+    var ks = Object.keys(S.dayn); if (ks.length > 60) delete S.dayn[ks[0]];
+    S.due[dueKey(w)] = Date.now() + INTERVALS[Math.min(5, w.level || 0)] * 86400000; saveState();
+  }
+  function dueEntries() {
+    var now = Date.now(), out = [];
+    allDecks().forEach(function (d) { if (d.folder) return; entriesOf(d).forEach(function (w) { var t = S.due[dueKey(w)]; if (t && t <= now && (w.level || 0) < 5 && w.ar && w.ar !== "—") out.push(w); }); });
+    var seen = {}; return out.filter(function (w) { var k = dueKey(w); if (seen[k]) return false; seen[k] = 1; return true; });
+  }
+  function masteredCount() { var n = 0; Object.keys(words).forEach(function (k) { if ((words[k].level || 0) >= 5) n++; }); Object.keys(S.prog).forEach(function (k) { if (S.prog[k] >= 5) n++; }); return n; }
+  function renderGoal() {
+    var box = $("#goalcard"); if (!box) return; box.textContent = "";
+    var G = S.goal || 10, today = S.dayn[dayKey(new Date())] || 0, pct = Math.min(1, today / G), due = dueEntries().length, C = 2 * Math.PI * 36;
+    var ring = el("button", "gring"); ring.type = "button"; ring.setAttribute("aria-label", "غيّر هدفك اليومي");
+    ring.innerHTML = '<svg viewBox="0 0 84 84"><circle class="bg" cx="42" cy="42" r="36"/><circle class="fg" cx="42" cy="42" r="36" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - pct)).toFixed(1) + '"/></svg>';
+    var gn = el("div", "gn", String(today)); gn.appendChild(el("span", null, "من " + G)); ring.appendChild(gn);
+    ring.onclick = function () { var L = [5, 10, 20, 30, 50], i = L.indexOf(G); S.goal = L[(i + 1) % L.length]; saveState(); renderGoal(); toast("هدفك اليومي " + S.goal + " مراجعة"); };
+    box.appendChild(ring);
+    var t = el("div", "gt"); t.appendChild(el("b", null, today >= G ? "أنجزت هدف اليوم" : "هدف اليوم: " + G + " مراجعة"));
+    var n = streak(); t.appendChild(el("span", null, (n ? n + " يوم متتالي" : "ابدأ سلسلة أيامك اليوم") + " · " + masteredCount() + " كلمة متقنة"));
+    t.appendChild(el("span", null, due ? due + " كلمة مستحقة للمراجعة الآن" : "ما عندك كلمات مستحقة الحين")); box.appendChild(t);
+    var wk = el("div", "gweek"), mx = Math.max(G, 1), d = new Date(); d.setDate(d.getDate() - 6);
+    for (var i = 0; i < 7; i++) { var c = S.dayn[dayKey(d)] || 0, col = el("div"), bar = el("i", c ? "on" : ""); bar.style.height = Math.max(4, Math.round(Math.min(1, c / mx) * 30)) + "px"; col.appendChild(bar); col.appendChild(el("span", null, ["ح", "ن", "ث", "ر", "خ", "ج", "س"][d.getDay()])); wk.appendChild(col); d.setDate(d.getDate() + 1); }
+    box.appendChild(wk);
+    var go = el("button", "btn main gbtn", due ? "راجع الكلمات المستحقة (" + due + ")" : "ابدأ مراجعة"); go.type = "button";
+    go.onclick = function () { rv.src = due ? "due" : (count() ? "mine" : "a1"); showView("review"); }; box.appendChild(go);
+    var bk = el("div", "gbtn"); bk.style.cssText = "display:flex;gap:8px;flex-wrap:wrap";
+    var ex = el("button", "btn ghost small", "نسخة احتياطية"); ex.type = "button";
+    ex.onclick = function () { try { var blob = new Blob([JSON.stringify({ words: words, state: S, big: typeof BIG !== "undefined" ? BIG : null })], { type: "application/json" }); var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "maqta-backup-" + dayKey(new Date()) + ".json"; document.body.appendChild(a); a.click(); a.remove(); toast("تم تحميل النسخة"); } catch (e) { toast("تعذّر التحميل هنا"); } };
+    var im = el("button", "btn ghost small", "استرجاع نسخة"); im.type = "button";
+    im.onclick = function () { var inp = document.createElement("input"); inp.type = "file"; inp.accept = ".json,application/json"; inp.onchange = function () { var f = inp.files[0]; if (!f) return; var r = new FileReader(); r.onload = function () { try { var d = JSON.parse(r.result); if (!d.words || !d.state) throw 0; Object.keys(d.words).forEach(function (k) { words[k] = d.words[k]; }); Object.keys(d.state).forEach(function (k) { if (k !== "history") S[k] = d.state[k]; else S.history = (d.state.history || []).concat(S.history).slice(0, 50); }); saveWords(); saveState(); renderHome(); updateBadge(); toast("تم الاسترجاع"); } catch (e) { toast("الملف غير صالح"); } }; r.readAsText(f); }; inp.click(); };
+    bk.appendChild(ex); bk.appendChild(im); box.appendChild(bk);
+  }
+  function renderHome() {
+    renderChips(); renderGoal();
+    var h = $("#hist"); h.textContent = "";
+    if (!S.history.length) { h.appendChild(el("div", "empty", "المقاطع اللي تفتحها تنحفظ هنا وترجع لها بنفس المكان.")); return; }
+    S.history.slice(0, 12).forEach(function (v) {
+      var b = el("button", "hitem"); b.type = "button";
+      b.appendChild(el("div", "ic", "▶"));
+      var tt = el("div", "tt"); tt.appendChild(el("b", null, v.title || v.id));
+      tt.appendChild(el("span", null, v.last > 5 ? "كمّل من الدقيقة " + Math.floor(v.last / 60) + ":" + ("0" + Math.floor(v.last % 60)).slice(-2) : "ابدأ المقطع"));
+      b.appendChild(tt); b.onclick = function () { loadVideo(v.id); };
+      h.appendChild(b);
+    });
+  }
+
+  /* ================= الكتب ================= */
+  var booksFilter = null;
+  function levelCard(k, code, sub, list) {
+    var done = list.filter(function (b) { return bookStat(b.id).done; }).length;
+    var c = el("div", "lvl lvl-" + k); c.setAttribute("role", "button"); c.tabIndex = 0;
+    var t = el("div", "t"); var l = el("div");
+    l.appendChild(el("div", "code", code)); l.appendChild(el("div", "sub", sub));
+    var go = el("span", "go", "ابدأ");
+    t.appendChild(l); t.appendChild(go); c.appendChild(t);
+    var b = el("div", "b"); var ln = el("div", "l"); ln.appendChild(el("span", null, done + " من " + list.length + " كتب")); ln.appendChild(el("span", null, Math.round(list.length ? done / list.length * 100 : 0) + "%"));
+    var pb = el("div", "pbar"); var i = document.createElement("i"); i.style.width = (list.length ? done / list.length * 100 : 0) + "%"; pb.appendChild(i);
+    b.appendChild(ln); b.appendChild(pb); c.appendChild(b);
+    c.onclick = function () { booksFilter = k; renderBooks(); window.scrollTo(0, 0); };
+    c.onkeydown = function (e) { if (e.key === "Enter") c.onclick(); };
+    return c;
+  }
+  /* ---- كتب يولّدها الذكاء الاصطناعي بحسب المستوى ---- */
+  var CAP = { A1: 1500, A2: 2500, B1: 4000, B2: 6000, C1: 8000 }, LEN = { A1: 150, A2: 220, B1: 320, B2: 420, C1: 520 };
+  var STYLE = { A1: "very short, simple sentences in the present tense, everyday topics", A2: "short sentences, present and simple past, everyday situations", B1: "clear connected sentences, mixed tenses, real-life stories", B2: "longer sentences, opinions, some idioms, more abstract ideas", C1: "natural advanced English with nuance, varied structures and some less common vocabulary" };
+  var genBusy = false;
+  function levelBooks(k) { return BOOKS.filter(function (b) { return b.lvl === k; }).concat((S.gen || []).filter(function (b) { return b.lvl === k; })); }
+  function genBar(k) {
+    var w = el("div", "bigbar"); w.style.marginTop = "12px";
+    var t = el("div", "bt"); t.appendChild(el("b", null, "كتاب جديد بمستوى " + k)); t.appendChild(el("span", null, "نحو " + LEN[k] + " كلمة")); w.appendChild(t);
+    var inp = el("input", "field"); inp.placeholder = "الموضوع (اختياري) مثل: السفر، المطعم، الرياضة"; inp.setAttribute("aria-label", "الموضوع"); inp.style.direction = "rtl"; w.appendChild(inp);
+    var b = el("button", "btn main small", genBusy ? "جاري الكتابة..." : "ولّد كتاباً"); b.type = "button"; b.disabled = genBusy;
+    b.onclick = function () { makeBook(k, inp.value.trim()); }; w.appendChild(b);
+    w.appendChild(el("p", "hint", "الكتاب يكتبه الذكاء الاصطناعي بكلمات من أشهر " + CAP[k] + " كلمة إنجليزية، يعني ما يطلع عن مستواك. تقدر تضغط أي كلمة لمعناها."));
+    return w;
+  }
+  function makeBook(k, topic) {
+    if (!sampleFn) { toast("التوليد غير متاح الآن"); return; }
+    genBusy = true; renderBooks(); toast("جاري كتابة الكتاب...");
+    var used = levelBooks(k).map(function (b) { return b.en; }).slice(-30).join("; ");
+    var prompt = "You write graded readers for Arabic-speaking English learners.\nCEFR level: " + k + ". Use ONLY vocabulary from the " + CAP[k] + " most common English words; do not use any rarer word. Grammar and style: " + STYLE[k] + ".\nLength: about " + LEN[k] + " words, plain paragraphs, no headings, no lists, no markdown.\nTopic: " + (topic || "choose an interesting everyday topic") + ".\nDo not reuse these titles: " + used + ".\nReply with only a JSON object: {\"title\": short English title, \"ar\": Arabic title, \"text\": the full text}";
+    sampleFn.json(prompt, { modelTier: "quick" }).then(function (r) {
+      var txt = String((r && r.text) || "").trim();
+      if (txt.split(/\s+/).length < 40) throw { code: "bad" };
+      var bk = { id: "g" + Date.now(), lvl: k, en: String(r.title || "New story").slice(0, 60), ar: String(r.ar || "كتاب جديد").slice(0, 60), text: txt.slice(0, 20000) };
+      S.gen = S.gen || []; S.gen.push(bk); saveState(); genBusy = false; renderBooks(); toast("تمت إضافة الكتاب");
+    }).catch(function () { genBusy = false; renderBooks(); toast("ما قدرت أكتب الكتاب. جرّب مرة ثانية"); });
+  }
+  function renderBooks() {
+    var lv = $("#bk-levels"), ls = $("#bk-list");
+    lv.hidden = booksFilter !== null; ls.hidden = booksFilter === null;
+    $("#bk-title").textContent = booksFilter === null ? "الكتب" : (booksFilter === "me" ? "كتبي" : booksFilter);
+    if (booksFilter === null) {
+      lv.textContent = "";
+      ["A1", "A2", "B1", "B2", "C1"].forEach(function (k) { lv.appendChild(levelCard(k, k, LEVELS[k].desc, levelBooks(k))); });
+      lv.appendChild(levelCard("me", "كتبي", "Your own texts", S.custom));
+      return;
+    }
+    ls.textContent = "";
+    var bk = el("button", "btn small ghost back", "رجوع للمستويات"); bk.type = "button"; bk.onclick = function () { booksFilter = null; renderBooks(); }; ls.appendChild(bk);
+    if (booksFilter !== "me") ls.appendChild(genBar(booksFilter));
+    var box = el("div", "books"); box.style.paddingTop = "12px"; ls.appendChild(box);
+    var list = booksFilter === "me" ? S.custom.map(function (c) { return { id: c.id, lvl: "me", en: c.title, ar: "نص مستورد", text: c.text, custom: true }; }) : levelBooks(booksFilter);
+    if (!list.length) { box.appendChild(el("div", "empty", booksFilter === "me" ? "ما استوردت شي للحين. اضغط «استورد نصاً أو كتاباً»." : "ما عندك كتب هنا للحين. اضغط «ولّد كتاباً».")); return; }
+    list.forEach(function (bk2) {
+      var st = bookStat(bk2.id), pct = st.done ? 100 : (st.total ? Math.round(st.pos / st.total * 100) : 0);
+      var b = el("button", "book"); b.type = "button";
+      b.appendChild(el("div", "cover lvl-" + bk2.lvl, bk2.lvl === "me" ? "T" : bk2.lvl));
+      var info = el("div", "info"); info.appendChild(el("div", "en", bk2.en)); info.appendChild(el("div", "ar", bk2.ar));
+      var wc = bk2.text.split(/\s+/).length; info.appendChild(el("span", "badge2", wc + " كلمة" + (st.done ? " · خلّصته" : "")));
+      var pb = el("div", "pbar"); var i = document.createElement("i"); i.style.width = pct + "%"; pb.appendChild(i); info.appendChild(pb);
+      b.appendChild(info); b.onclick = function () { openBook(bk2); };
+      box.appendChild(b);
+    });
+  }
+  $("#import").addEventListener("click", function () {
+    openSheet(function (box) {
+      box.appendChild(el("div", "sec", "استورد نصاً"));
+      var t = el("input", "field"); t.id = "imp-title"; t.placeholder = "Title"; box.appendChild(t);
+      var ta = el("textarea", "field"); ta.id = "imp-text"; ta.placeholder = "Paste English text here..."; box.appendChild(ta);
+      var f = el("input", "field"); f.type = "file"; f.accept = ".txt,text/plain"; f.id = "imp-file"; f.setAttribute("aria-label", "ملف نصي"); box.appendChild(f);
+      f.onchange = function () { var file = f.files && f.files[0]; if (!file) return; var r = new FileReader(); r.onload = function () { ta.value = String(r.result || "").slice(0, 300000); if (!t.value) t.value = file.name.replace(/\.[^.]+$/, ""); }; r.readAsText(file); };
+      var row = el("div", "row"); var ok = el("button", "btn main", "احفظ واقرأ"); ok.type = "button";
+      ok.onclick = function () {
+        var txt = ta.value.trim(); if (txt.length < 30) { toast("الصق نصاً أطول"); return; }
+        var c = { id: "c" + Date.now(), title: t.value.trim() || "My text", text: txt.slice(0, 300000) };
+        S.custom.unshift(c); saveState(); closeSheet(); booksFilter = "me"; renderBooks(); openBook({ id: c.id, lvl: "me", en: c.title, ar: "", text: c.text, custom: true });
+      };
+      var cl = el("button", "btn ghost", "إلغاء"); cl.type = "button"; cl.onclick = closeSheet; row.appendChild(ok); row.appendChild(cl); box.appendChild(row);
+    });
+  });
+
+  /* ================= القارئ ================= */
+  var R = { type: null, id: null, title: "", pos: 0 };
+  var sentences = [], times = [], trans = [], sentEls = [], wordsBySent = [], inflight = {};
+  var videoMode = false, curLine = -1, player = null, ytP = null, loadingVid = null;
+  var showTr = true, rate = 1, repeatOn = false, tok = 0, playing = -1, chain = false;
+  var vrate = 1, vloop = false, loopLine = -1, lastSave = 0;
+
+  function parse(raw) {
+    var lines = raw.split(/\r?\n/).map(function (l) { return l.trim(); })
+      .filter(function (l) { return l && !/^\d{1,2}(:\d{2}){1,2}$/.test(l) && !/^\[[^\]]*\]$/.test(l); })
+      .map(function (l) { return (!/[.!?:;,"'”’)\]]$/.test(l) && l.split(" ").length <= 8) ? l + "." : l; });
+    var text = lines.join(" ").replace(/\s+/g, " ").trim();
+    text = text.replace(/\b(Mr|Mrs|Ms|Dr|St|vs|etc)\./g, "$1\u2024");
+    var parts = (text.match(/[^.!?]+[.!?]+["')\]]*|[^.!?]+$/g) || []).map(function (p) { return p.replace(/\u2024/g, "."); }).filter(function (p) { return /[A-Za-z0-9]/.test(p); });
+    var out = [];
+    parts.forEach(function (p) {
+      var ws = p.trim().split(" ").filter(Boolean);
+      for (var i = 0; i < ws.length; i += 16) out.push(ws.slice(i, i + 16).join(" "));
+    });
+    return out.slice(0, 3000);
+  }
+  var TOKEN = /[A-Za-z]+(?:['’][A-Za-z]+)*|[0-9]+(?:[.,][0-9]+)?%?/g;
+  function applyFs() { document.documentElement.style.setProperty("--fs", FS[S.fs] + "px"); }
+  function renderReader() {
+    var box = $("#reader"); box.textContent = ""; wordsBySent = []; sentEls = [];
+    sentences.forEach(function (s, i) {
+      var wrap = el("div", "sent"); wrap.dataset.i = i;
+      var p = el("p", "en"); var last = 0, m; TOKEN.lastIndex = 0; wordsBySent[i] = [];
+      while ((m = TOKEN.exec(s))) {
+        if (m.index > last) p.appendChild(document.createTextNode(s.slice(last, m.index)));
+        var b = el("button", "w", m[0]); b.type = "button"; b.dataset.s = m.index; wordsBySent[i].push(b); last = m.index + m[0].length;
+        var tail = (s.slice(last).match(/^[^\sA-Za-z0-9]+/) || [""])[0];
+        if (tail) { var nw = el("span", "nw"); nw.appendChild(b); nw.appendChild(document.createTextNode(tail)); p.appendChild(nw); last += tail.length; } else p.appendChild(b);
+      }
+      if (last < s.length) p.appendChild(document.createTextNode(s.slice(last)));
+      wrap.appendChild(p);
+      var tr = el("p", "tr", trans[i] || ""); tr.hidden = !trans[i]; wrap.appendChild(tr);
+      var tools = el("div", "tools");
+      if (times[i] != null) { var sk = el("button", "btn small main", "شغّل من هنا"); sk.type = "button"; sk.dataset.act = "seek"; tools.appendChild(sk); }
+      var ex = el("button", "btn small", "اشرح الجملة"); ex.type = "button"; ex.dataset.act = "explain";
+      var sp = el("button", "btn small", "استمع"); sp.type = "button"; sp.dataset.act = "speak";
+      tools.appendChild(ex); tools.appendChild(sp); wrap.appendChild(tools);
+      box.appendChild(wrap); sentEls.push(wrap);
+    });
+    $("#reader").classList.toggle("hidetr", !showTr); $("#reader").classList.toggle("cm", !!S.cm);
+    if (S.cm) sentences.forEach(function (_, i) { applyAlign(i); });
+    paint(); updateBar();
+  }
+  function paint() {
+    document.querySelectorAll("#reader .w").forEach(function (b) {
+      var w = words[keyOf(b.textContent)], st = w ? stateOf(w) : "";
+      b.classList.toggle("w-new", st === "new"); b.classList.toggle("w-learn", st === "learn"); b.classList.toggle("w-known", st === "known");
+    });
+  }
+  function enterReader(title, from) {
+    R.title = title; $("#rtitle").textContent = title; returnTo = from || view;
+    $("#reader").classList.toggle("hidetr", !showTr);
+    $("#v-reader").hidden = false; showView("reader");
+    $("#rtitle").textContent = title; applyFs();
+  }
+  function resetReaderState() {
+    stopSpeech(); trans = []; align = []; alInfl = {}; curLine = -1; loopLine = -1; vloop = false; R.pos = 0; showTr = true;
+    try { if (player && player.pauseVideo) player.pauseVideo(); } catch (e) {}
+  }
+  function openBook(bk) {
+    resetReaderState(); videoMode = false; times = []; R = { type: "book", id: bk.id, title: bk.en, pos: 0 };
+    sentences = parse(bk.text); $("#playerwrap").hidden = true;
+    var from = view === "reader" ? returnTo : view;
+    renderReader(); enterReader(bk.en, from);
+    var st = bookStat(bk.id);
+    if (st.pos > 0 && !st.done && sentEls[st.pos]) { setTimeout(function () { sentEls[st.pos].scrollIntoView({ block: "start" }); }, 60); }
+    markDay(); ensureTr(st.pos || 0);
+  }
+  $("#rback").addEventListener("click", function () { saveProgress(true); stopSpeech(); try { if (player && player.pauseVideo) player.pauseVideo(); } catch (e) {} showView(returnTo || "home"); });
+  $("#fsm").addEventListener("click", function () { S.fs = Math.max(0, S.fs - 1); applyFs(); saveState(); });
+  $("#fsp").addEventListener("click", function () { S.fs = Math.min(FS.length - 1, S.fs + 1); applyFs(); saveState(); });
+
+  $("#reader").addEventListener("click", function (e) {
+    var sent = e.target.closest(".sent"); if (!sent) return;
+    var i = +sent.dataset.i, w = e.target.closest(".w");
+    if (w) { openWord(w, sentences[i]); return; }
+    var btn = e.target.closest("button[data-act]");
+    if (btn) {
+      if (btn.dataset.act === "seek" && player && player.seekTo) { player.seekTo(times[i], true); player.playVideo(); }
+      if (btn.dataset.act === "speak") playSentence(i, false);
+      if (btn.dataset.act === "explain") explain(sent, sentences[i], btn);
+      return;
+    }
+    var was = sent.classList.contains("open");
+    document.querySelectorAll(".sent.open").forEach(function (x) { x.classList.remove("open"); });
+    if (!was) sent.classList.add("open");
+  });
+
+  /* ---- ترجمة الجمل بالدفعات حسب مكانك ---- */
+  function fillTrans(a, n) {
+    for (var j = 0; j < n; j++) {
+      var s = sentEls[a + j]; if (!s) continue; var t = s.querySelector(".tr");
+      if (S.cm && align[a + j]) { applyAlign(a + j); continue; }
+      t.textContent = trans[a + j] || ""; t.hidden = !trans[a + j];
+    }
+  }
+  /* ---- ألوان المعنى: كل عبارة إنجليزية وترجمتها بنفس اللون ---- */
+  var align = [], alInfl = {};
+  function applyAlign(i) {
+    var al = align[i], wrap = sentEls[i]; if (!al || !wrap) return;
+    var ws = wordsBySent[i] || [], k = 0, ok = true, marks = [];
+    al.c.forEach(function (ch, ci) {
+      (String(ch.en || "").match(TOKEN) || []).forEach(function (t) { var w = ws[k]; if (!w || w.textContent.toLowerCase() !== t.toLowerCase()) ok = false; else marks.push([w, ci % 5]); k++; });
+    });
+    var tr = wrap.querySelector(".tr"); tr.textContent = "";
+    if (ok && k === ws.length) marks.forEach(function (m) { m[0].dataset.c = m[1]; });
+    var shown = 0;
+    al.o.forEach(function (ci) {
+      var c = al.c[ci]; if (!c || !c.ar) return; var n = ci % 5;
+      var sp = el("span", "ac", String(c.ar)); sp.dataset.c = n; sp.style.color = "var(--c" + n + ")";
+      sp.style.background = "color-mix(in srgb, var(--c" + n + ") 16%, transparent)"; sp.style.borderBottom = "2px solid var(--c" + n + ")";
+      tr.appendChild(sp); tr.appendChild(document.createTextNode(" ")); shown++;
+    });
+    if (!shown) tr.textContent = trans[i] || "";
+    tr.hidden = !tr.textContent;
+  }
+  function clearAlign() { document.querySelectorAll("#reader .w[data-c]").forEach(function (w) { delete w.dataset.c; }); }
+  async function ensureAl(a) {
+    a = Math.floor(a / 8) * 8;
+    if (a < 0 || a >= sentences.length || !sampleFn || !showTr) return;
+    var missA = false; for (var q = a; q < Math.min(a + 8, sentences.length); q++) if (align[q] == null) missA = true;
+    if (!missA) return;
+    if (alInfl[a] && alInfl[a] > Date.now()) return;
+    alInfl[a] = Date.now() + 60000;
+    var mine = sentences, chunk = mine.slice(a, a + 8);
+    try {
+      var r = await sampleFn.json("You help Arabic speakers read English. For each English sentence below, split it into 2 to 6 meaningful phrase chunks (keep the original order; the chunks, joined by spaces, must reproduce the sentence exactly, with punctuation attached to its word). Give the natural Arabic for each chunk, and give \"o\": the chunk indices in the order they appear in the natural Arabic sentence. Never merge or skip sentences. Reply with only a JSON array of " + chunk.length + " objects, one per sentence, like {\"i\": the sentence number, \"c\":[{\"en\":\"Go\",\"ar\":\"اذهب\"},{\"en\":\"outside\",\"ar\":\"خارجا\"}],\"o\":[0,1]}.\n" + JSON.stringify(chunk.map(function (t, j) { return { i: j, s: t }; })), { modelTier: "quick" });
+      if (mine !== sentences) return;
+      var byI = {}; (Array.isArray(r) ? r : []).forEach(function (x) { if (x && x.i != null) byI[Number(x.i)] = x; });
+      var gotAl = 0;
+      for (var j = 0; j < chunk.length; j++) {
+        var it = byI[j]; if (!it) continue; gotAl++;
+        var c = Array.isArray(it.c) ? it.c.filter(function (x) { return x && x.en; }) : [];
+        var o = it && Array.isArray(it.o) && it.o.length === c.length && it.o.every(function (n) { return c[n]; }) ? it.o : c.map(function (_, n) { return n; });
+        align[a + j] = { c: c, o: o }; trans[a + j] = o.map(function (n) { return c[n].ar; }).join(" ");
+        if (S.cm) applyAlign(a + j);
+      }
+      alInfl[a] = gotAl < chunk.length ? Date.now() + 15000 : 0;
+    } catch (e) { alInfl[a] = Date.now() + 15000; }
+  }
+  function ensureTr(a) { if (S.cm) { ensureAl(a); ensureAl(a + 8); } else ensureTr0(a); }
+  async function ensureTr0(a) {
+    a = Math.floor(a / 15) * 15;
+    if (a < 0 || a >= sentences.length || !sampleFn || !showTr) return;
+    var miss = false; for (var q = a; q < Math.min(a + 15, sentences.length); q++) if (trans[q] == null) miss = true;
+    if (!miss) return;
+    if (inflight[a] && inflight[a] > Date.now()) return;
+    inflight[a] = Date.now() + 60000;
+    var mine = sentences, chunk = mine.slice(a, a + 15);
+    try {
+      var r = await sampleFn.json("Translate each English sentence into natural, simple Arabic. Keep the translation of each sentence separate and never merge or skip sentences. Reply with only a JSON array of " + chunk.length + " objects {\"i\": the sentence number, \"t\": the Arabic translation}.\n" + JSON.stringify(chunk.map(function (t, j) { return { i: j, s: t }; })), { modelTier: "quick" });
+      if (mine !== sentences) return;
+      var got = 0; (Array.isArray(r) ? r : []).forEach(function (x) { var j = x && Number(x.i); if (x && j >= 0 && j < chunk.length && x.t) { trans[a + j] = String(x.t); got++; } });
+      inflight[a] = got < chunk.length ? Date.now() + 15000 : 0; fillTrans(a, chunk.length);
+    } catch (e) { inflight[a] = Date.now() + 15000; }
+  }
+  $("#cmbtn").addEventListener("click", function () {
+    S.cm = !S.cm; saveState(); $("#reader").classList.toggle("cm", S.cm);
+    if (S.cm) { showTr = true; $("#reader").classList.remove("hidetr"); sentences.forEach(function (_, i) { applyAlign(i); }); ensureTr(R.pos); }
+    else { clearAlign(); sentences.forEach(function (_, i) { var t = sentEls[i] && sentEls[i].querySelector(".tr"); if (t) { t.textContent = trans[i] || ""; t.hidden = !trans[i]; } }); ensureTr(R.pos); }
+    updateBar();
+  });
+  $("#trbtn").addEventListener("click", function () {
+    showTr = !showTr; $("#reader").classList.toggle("hidetr", !showTr); updateBar();
+    if (showTr) ensureTr(R.pos);
+  });
+
+  /* ---- شرح الجملة ---- */
+  function explain(sent, text, btn) {
+    var old = sent.querySelector(".explain"); if (old) { old.remove(); return; }
+    var out = el("div", "explain"); sent.appendChild(out);
+    if (!sampleFn) { out.textContent = "الشرح غير متاح الآن."; return; }
+    out.appendChild(el("span", "pulse", "Claude يفكّر...")); btn.disabled = true;
+    var prompt = "You help an Arabic speaker learn English.\nSentence: \"" + text + "\"\nIn simple Arabic: first line is the translation. Then explain the key grammar point or expression in at most two short sentences. No markdown, no headings, under 70 words.";
+    sampleFn(prompt, { onText: function (u) { out.textContent = u.text; } })
+      .catch(function (e) { out.textContent = (e && e.text) ? e.text : "تعذّر الشرح. جرّب بعد قليل."; })
+      .then(function () { btn.disabled = false; });
+  }
+
+  /* ---- قراءة صوتية ---- */
+  function clearPlay() { document.querySelectorAll(".sent.playing").forEach(function (x) { x.classList.remove("playing"); }); document.querySelectorAll(".w.say").forEach(function (x) { x.classList.remove("say"); }); }
+  function stopSpeech() { tok++; try { speechSynthesis.cancel(); } catch (e) {} clearPlay(); playing = -1; chain = false; updateBar(); }
+  function playSentence(i, asChain) {
+    if (!("speechSynthesis" in window)) { toast("النطق غير متاح على هذا الجهاز"); return; }
+    var mine = ++tok; try { speechSynthesis.cancel(); } catch (e) {}
+    clearPlay(); playing = i; chain = !!asChain;
+    var sent = sentEls[i]; if (sent) { sent.classList.add("playing"); sent.scrollIntoView({ block: "center", behavior: "smooth" }); }
+    var u = new SpeechSynthesisUtterance(sentences[i]); u.lang = "en-US"; u.rate = rate;
+    u.onboundary = function (e) {
+      if (mine !== tok) return;
+      document.querySelectorAll(".w.say").forEach(function (x) { x.classList.remove("say"); });
+      var bs = wordsBySent[i] || [];
+      for (var k = 0; k < bs.length; k++) { var s0 = +bs[k].dataset.s; if (e.charIndex >= s0 && e.charIndex < s0 + bs[k].textContent.length) { bs[k].classList.add("say"); break; } }
+    };
+    u.onend = function () { if (mine !== tok) return; if (repeatOn) playSentence(i, chain); else if (chain && i + 1 < sentences.length) playSentence(i + 1, true); else stopSpeech(); };
+    u.onerror = function (e) { if (mine !== tok) return; if (e.error !== "interrupted" && e.error !== "canceled") { toast("النطق غير متاح على هذا الجهاز"); stopSpeech(); } };
+    try { speechSynthesis.speak(u); } catch (e) { toast("النطق غير متاح على هذا الجهاز"); }
+    updateBar();
+  }
+  function updateBar() {
+    $("#playall").textContent = (playing >= 0 && chain) ? "إيقاف" : "قراءة صوتية";
+    $("#speed").textContent = "السرعة " + rate + "x";
+    $("#repeat").classList.toggle("on", repeatOn);
+    var tb = $("#trbtn"); tb.textContent = showTr ? "الترجمة: تشغيل" : "الترجمة: إيقاف"; tb.classList.toggle("on", showTr); var cb = $("#cmbtn"); cb.classList.toggle("on", !!S.cm); cb.textContent = S.cm ? "ألوان المعنى: تشغيل" : "ألوان المعنى";
+    ["#playall", "#speed", "#repeat"].forEach(function (q) { $(q).style.display = videoMode ? "none" : ""; });
+  }
+  $("#playall").addEventListener("click", function () { if (playing >= 0 && chain) stopSpeech(); else playSentence(Math.min(R.pos || 0, Math.max(0, sentences.length - 1)), true); });
+  $("#speed").addEventListener("click", function () { var r = [0.7, 0.85, 1, 1.2]; rate = r[(r.indexOf(rate) + 1) % r.length]; updateBar(); });
+  $("#repeat").addEventListener("click", function () { repeatOn = !repeatOn; updateBar(); });
+
+  /* ---- تقدّم القراءة ---- */
+  function topIdx() {
+    var head = 56 + ($("#playerwrap").hidden ? 0 : $("#playerwrap").getBoundingClientRect().height) + 12, lo = 0, hi = sentEls.length - 1, ans = 0;
+    while (lo <= hi) { var mid = (lo + hi) >> 1; if (sentEls[mid].getBoundingClientRect().bottom > head) { ans = mid; hi = mid - 1; } else lo = mid + 1; }
+    return ans;
+  }
+  function saveProgress(force) {
+    if (!R.id || !sentences.length) return;
+    var now = Date.now(); if (!force && now - lastSave < 4000) return; lastSave = now;
+    if (R.type === "book") {
+      var o = S.books[R.id] || {}; var done = o.done || R.pos >= sentences.length * 0.95;
+      S.books[R.id] = { pos: R.pos, total: sentences.length, done: !!done };
+    } else if (R.type === "video") {
+      var v = S.history.filter(function (x) { return x.id === R.id; })[0]; if (v) { var t = 0; try { t = player.getCurrentTime(); } catch (e) {} if (t > 0) v.last = t; }
+    }
+    saveState();
+  }
+  function tick() {
+    if (view !== "reader" || !sentences.length) return;
+    if (videoMode) {
+      if (!player || !player.getCurrentTime || !times.length) return;
+      var t = 0; try { t = player.getCurrentTime(); } catch (e) { return; }
+      var lo = 0, hi = times.length - 1, idx = 0;
+      while (lo <= hi) { var mid = (lo + hi) >> 1; if (times[mid] <= t + 0.2) { idx = mid; lo = mid + 1; } else hi = mid - 1; }
+      if (vloop && loopLine >= 0) {
+        var end = loopLine + 1 < times.length ? times[loopLine + 1] : Infinity;
+        if (t >= end - 0.12) { try { player.seekTo(times[loopLine], true); } catch (e) {} return; }
+        idx = loopLine;
+      }
+      if (idx !== curLine) {
+        curLine = idx; R.pos = idx;
+        document.querySelectorAll(".sent.now").forEach(function (x) { x.classList.remove("now"); });
+        var se = sentEls[idx]; if (se) { se.classList.add("now"); se.scrollIntoView({ block: "center", behavior: "smooth" }); }
+        markDay();
+      }
+      ensureTr(idx); ensureTr(idx + 15); saveProgress(false);
+    } else {
+      var p = topIdx(); R.pos = p; ensureTr(p); ensureTr(p + 15); saveProgress(false);
+      $("#rprog").style.width = Math.min(100, Math.round((p + 1) / sentences.length * 100)) + "%";
+    }
+  }
+  setInterval(tick, 500);
+  window.addEventListener("scroll", function () { if (view === "reader" && !videoMode && sentEls.length) { var p = topIdx(); R.pos = p; $("#rprog").style.width = Math.min(100, Math.round((p + 1) / sentences.length * 100)) + "%"; } }, { passive: true });
+
+  /* ================= فيديو يوتيوب ================= */
+  function ytId(u) {
+    var m = String(u || "").trim().match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtube\.com\/v\/)([\w-]{11})/i);
+    return m ? m[1] : null;
+  }
+  function fromSegments(segs) {
+    var out = [], st = [], buf = "", bs = 0;
+    segs.forEach(function (g) {
+      if (!buf) bs = g.start;
+      buf = (buf + " " + g.text).trim();
+      var n = buf.split(" ").length;
+      if (n >= 8 || (n >= 4 && /[.!?]["')\]]*$/.test(buf))) { out.push(buf); st.push(bs); buf = ""; }
+    });
+    if (buf) { out.push(buf); st.push(bs); }
+    return { s: out.slice(0, 3000), t: st.slice(0, 3000) };
+  }
+  function loadYT() {
+    return ytP || (ytP = new Promise(function (res) {
+      if (window.YT && YT.Player) return res();
+      window.onYouTubeIframeAPIReady = res;
+      var sc = document.createElement("script"); sc.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(sc);
+    }));
+  }
+  function updPP(state) { $("#vpp").textContent = state === 1 ? "إيقاف" : "تشغيل"; }
+  async function mountPlayer(id, start) {
+    await loadYT(); $("#playerwrap").hidden = false;
+    if (player && player.loadVideoById) { player.loadVideoById({ videoId: id, startSeconds: start || 0 }); return; }
+    player = new YT.Player("player", { videoId: id, playerVars: { playsinline: 1, rel: 0, start: Math.floor(start || 0) }, events: { onStateChange: function (e) { updPP(e.data); } } });
+  }
+  async function loadVideo(id) {
+    if (PREVIEW) { toast("الفيديو يشتغل في التطبيق الكامل بعد النشر. هنا جرّب الكتب."); return; }
+    if (loadingVid === id) return; loadingVid = id; toast("أجلب نص الفيديو...");
+    try {
+      var r = await fetch("/api/transcript?v=" + id, { headers: headers() });
+      if (r.status === 401) { loadingVid = null; if (askCode()) return loadVideo(id); return; }
+      var j = await r.json(); if (!r.ok) throw j;
+      resetReaderState();
+      var g = fromSegments(j.segments); sentences = g.s; times = g.t; videoMode = true;
+      var h = S.history.filter(function (x) { return x.id === id; })[0];
+      if (!h) { h = { id: id, title: j.title || id, t: Date.now(), last: 0 }; } else { S.history = S.history.filter(function (x) { return x.id !== id; }); if (j.title) h.title = j.title; }
+      h.t = Date.now(); S.history.unshift(h); S.history = S.history.slice(0, 40); saveState();
+      R = { type: "video", id: id, title: h.title, pos: 0 };
+      var from = view === "reader" ? returnTo : view;
+      renderReader(); enterReader(h.title, from); await mountPlayer(id, h.last > 5 ? h.last - 2 : 0);
+      ensureTr(0); markDay();
+      toast(j.auto ? "النص مولّد تلقائياً وقد يكون فيه أخطاء" : "تم تحميل النص");
+    } catch (e) {
+      toast(e && e.error === "no_captions" ? "هذا الفيديو ما عليه ترجمة نصية. جرّب فيديو ثاني" : "تعذّر جلب النص. تأكد من الرابط أو الصق النص يدوياً");
+    }
+    loadingVid = null;
+  }
+  $("#yturl").addEventListener("input", function () { var id = ytId(this.value); if (id) loadVideo(id); });
+  $("#go").addEventListener("click", function () { var id = ytId($("#yturl").value); if (id) loadVideo(id); else toast("الصق رابط يوتيوب صحيح"); });
+  $("#gotext").addEventListener("click", function () {
+    var raw = $("#paste").value.trim(); if (raw.length < 20) { toast("الصق النص أولاً"); return; }
+    var c = { id: "c" + Date.now(), title: $("#mtitle").value.trim() || "My text", text: raw.slice(0, 300000) };
+    S.custom.unshift(c); saveState(); openBook({ id: c.id, lvl: "me", en: c.title, ar: "", text: c.text, custom: true });
+  });
+  $("#vprev").addEventListener("click", function () { if (!player) return; var i = Math.max(0, curLine - 1); loopLine = vloop ? i : -1; player.seekTo(times[i], true); player.playVideo(); });
+  $("#vnext").addEventListener("click", function () { if (!player) return; var i = Math.min(times.length - 1, curLine + 1); loopLine = vloop ? i : -1; player.seekTo(times[i], true); player.playVideo(); });
+  $("#vb5").addEventListener("click", function () { if (!player) return; player.seekTo(Math.max(0, player.getCurrentTime() - 5), true); });
+  $("#vf5").addEventListener("click", function () { if (!player) return; player.seekTo(player.getCurrentTime() + 5, true); });
+  $("#vpp").addEventListener("click", function () { if (!player) return; if (player.getPlayerState && player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo(); });
+  $("#vspeed").addEventListener("click", function () { var r = [0.75, 1, 1.25, 1.5]; vrate = r[(r.indexOf(vrate) + 1) % r.length]; try { player.setPlaybackRate(vrate); } catch (e) {} this.textContent = "السرعة " + vrate + "x"; });
+  $("#vloop").addEventListener("click", function () { vloop = !vloop; loopLine = vloop ? Math.max(0, curLine) : -1; this.classList.toggle("on", vloop); });
+
+  /* ================= نافذة الكلمة ================= */
+  var cw = null;
+  function openSheet(build) { var box = $("#sheet-in"); box.textContent = ""; build(box); $("#scrim").hidden = false; $("#sheet").hidden = false; }
+  function closeSheet() { $("#scrim").hidden = true; $("#sheet").hidden = true; if (lookCtl) lookCtl.abort(); document.querySelectorAll(".w.cur").forEach(function (x) { x.classList.remove("cur"); }); cw = null; }
+  $("#scrim").addEventListener("click", closeSheet);
+
+  /* ---- نطق: IPA وكتابته بالحروف العربية ---- */
+  function getPron(word) {
+    var k = keyOf(word); if (S.pron[k]) return Promise.resolve(S.pron[k]);
+    if (!sampleFn) return Promise.reject({ code: "no_ai" });
+    return sampleFn.json("Reply with only a JSON object {\"ipa\": IPA transcription of the English word or phrase, in slashes, \"say\": how an Arabic speaker should read it, written in Arabic letters with short vowels where needed}. Word: \"" + word + "\"", { modelTier: "quick" }).then(function (r) {
+      var o = { ipa: String((r && r.ipa) || ""), say: String((r && r.say) || "") };
+      if (o.ipa || o.say) { S.pron[k] = o; var ks = Object.keys(S.pron); if (ks.length > 600) delete S.pron[ks[0]]; saveState(); }
+      return o;
+    });
+  }
+  function pronText(o) { return [o.ipa, o.say ? "نطقها: " + o.say : ""].filter(Boolean).join("  ·  "); }
+  function recordClip(ms) {
+    return navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      return new Promise(function (res) {
+        var chunks = [], mr = new MediaRecorder(stream);
+        mr.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+        mr.onstop = function () { stream.getTracks().forEach(function (t) { t.stop(); }); res(new Blob(chunks, { type: mr.mimeType || "audio/webm" })); };
+        mr.start(); setTimeout(function () { if (mr.state !== "inactive") mr.stop(); }, ms);
+      });
+    });
+  }
+  function fallbackSpeak(f, w, next) {
+    f.appendChild(el("div", "ans", w.ar)); f.appendChild(el("div", "big", w.word));
+    var pr = el("div", "hint pron", ""); f.appendChild(pr);
+    getPron(w.word).then(function (o) { pr.textContent = pronText(o); }).catch(function () {});
+    var hint = el("div", "hint", "1) استمع للنطق الصحيح  2) سجّل صوتك  3) قارن بين الصوتين"); f.appendChild(hint);
+    var row = el("div", "recrow"); f.appendChild(row);
+    var hear = el("button", "btn small", "استمع للنموذج"); hear.type = "button"; hear.onclick = function () { speak(w.word); }; row.appendChild(hear);
+    var rec = el("button", "btn main small", "سجّل صوتك"); rec.type = "button"; row.appendChild(rec);
+    var last = null, cmp = el("div", "recrow"); f.appendChild(cmp);
+    rec.onclick = function () {
+      if (!navigator.mediaDevices || !window.MediaRecorder) { toast("التسجيل غير متاح على هذا الجهاز"); return; }
+      rec.disabled = true; rec.textContent = "أسمعك... انطق الآن"; stopSpeech();
+      recordClip(3000).then(function (blob) {
+        last = blob; rec.disabled = false; rec.textContent = "أعد التسجيل"; cmp.textContent = "";
+        var mine = el("button", "btn small", "شغّل تسجيلي"); mine.type = "button"; mine.onclick = function () { try { new Audio(URL.createObjectURL(last)).play(); } catch (e) { toast("تعذّر تشغيل التسجيل"); } }; cmp.appendChild(mine);
+        var ok = el("button", "btn main small", "نطقتها صح"); ok.type = "button"; ok.onclick = function () { next(true); };
+        var again = el("button", "btn ghost small", "أحتاج أتدرب"); again.type = "button"; again.onclick = function () { next(false); };
+        cmp.appendChild(ok); cmp.appendChild(again);
+      }).catch(function () { rec.disabled = false; rec.textContent = "سجّل صوتك"; toast("ما قدرت أستخدم الميكروفون. اسمح له من إعدادات المتصفح"); });
+    };
+    var skip = el("button", "btn ghost small", "تخطّي"); skip.type = "button"; skip.onclick = function () { rv.i++; renderReview(); }; f.appendChild(skip);
+  }
+
+  function lookup(ctx, view) {
+    if (!sampleFn) { view.fail("الترجمة التلقائية غير متاحة. اكتب المعنى بنفسك."); return; }
+    if (lookCtl) lookCtl.abort(); lookCtl = new AbortController();
+    var prompt = "You help an Arabic speaker learn English.\nWord: \"" + ctx.word + "\"\nSentence: \"" + ctx.sentence + "\"\nReply with only a JSON object: {\"base\": dictionary form of the word, \"pos\": part of speech in Arabic (اسم/فعل/صفة/ظرف/حرف/تعبير), \"ar\": best Arabic meaning of the word in THIS sentence, one or two words, \"alt\": array of at most 2 other common Arabic meanings (may be empty), \"note\": one very short Arabic sentence about usage or verb form, or an empty string}";
+    sampleFn.json(prompt, { modelTier: "quick", signal: lookCtl.signal }).then(function (r) {
+      if (!cw || cw.key !== ctx.key) return;
+      view.done({ base: String(r.base || ctx.word), pos: String(r.pos || ""), ar: String(r.ar || ""), alt: Array.isArray(r.alt) ? r.alt.slice(0, 2).map(String) : [], note: String(r.note || "") });
+    }).catch(function (e) { if (e && e.code === "cancelled") return; view.fail("تعذّرت الترجمة. اكتب المعنى بنفسك."); });
+  }
+  function openWord(btn, sentence) {
+    document.querySelectorAll(".w.cur").forEach(function (x) { x.classList.remove("cur"); }); btn.classList.add("cur");
+    var word = btn.textContent, k = keyOf(word); cw = { word: word, key: k, sentence: sentence };
+    var saved = words[k] || null;
+    openSheet(function (box) {
+      var line = el("div", "wordline"); line.appendChild(el("div", "word", cw.word));
+      var row = el("div", "row");
+      var sp = el("button", "btn small ghost", "استمع"); sp.type = "button"; sp.onclick = function () { speak(cw.word); };
+      var cl = el("button", "btn small ghost", "إغلاق"); cl.type = "button"; cl.onclick = closeSheet;
+      row.appendChild(sp); row.appendChild(cl); line.appendChild(row); box.appendChild(line);
+      box.appendChild(el("div", "ctx", cw.sentence));
+      var prl = el("div", "meta pron", ""); box.appendChild(prl); var pw = cw.word;
+      getPron(pw).then(function (o) { if (cw && cw.word === pw) prl.textContent = pronText(o); }).catch(function () {});
+      var body = el("div"); body.style.display = "grid"; body.style.gap = "10px"; box.appendChild(body);
+      var sel = saved ? stateOf(saved) : "new";
+      function showResult(d, isSaved) {
+        body.textContent = "";
+        var ar = el("input", "field"); ar.id = "ar-input"; ar.value = d.ar || ""; ar.dir = "rtl"; ar.style.textAlign = "right"; ar.style.fontFamily = "var(--ui)"; ar.style.fontSize = "22px"; ar.style.fontWeight = "700"; ar.setAttribute("aria-label", "المعنى بالعربي"); ar.placeholder = "اكتب المعنى";
+        body.appendChild(ar);
+        var meta = [d.pos, d.base && keyOf(d.base) !== cw.key ? "الأصل: " + d.base : ""].filter(Boolean).join(" · ");
+        if (meta) body.appendChild(el("div", "meta", meta));
+        if (d.alt && d.alt.length) body.appendChild(el("div", "meta", "معانٍ أخرى: " + d.alt.join("، ")));
+        if (d.note) body.appendChild(el("div", "meta", d.note));
+        var seg = el("div", "seg"); var opts = [["new", "جديدة"], ["learn", "أتعلمها"], ["known", "عرفتها"]];
+        opts.forEach(function (o) { var b = el("button", "btn" + (sel === o[0] ? " on" : ""), o[1]); b.type = "button"; b.onclick = function () { sel = o[0]; seg.querySelectorAll(".btn").forEach(function (x, i) { x.classList.toggle("on", opts[i][0] === sel); }); }; seg.appendChild(b); });
+        body.appendChild(seg);
+        var act = el("div", "row"); var save = el("button", "btn main", isSaved ? "حدّث الكلمة" : "احفظ الكلمة"); save.type = "button";
+        save.onclick = function () {
+          var m = ar.value.trim(); if (!m && sel !== "known") { toast("اكتب المعنى أولاً"); return; }
+          var prev = words[cw.key], lv = { new: 1, learn: 3, known: 5 }[sel];
+          if (prev && stateOf(prev) === sel) lv = prev.level;
+          words[cw.key] = { key: cw.key, word: cw.word, base: d.base || cw.word, pos: d.pos || "", ar: m || (prev ? prev.ar : "") || "—", alt: d.alt || [], note: d.note || "", sentence: cw.sentence, level: lv, added: prev ? prev.added : Date.now() };
+          saveWords(); markDay(); paint(); renderChips(); updateBadge(); closeSheet(); toast("تم حفظ الكلمة");
+        };
+        act.appendChild(save);
+        if (isSaved) { var del = el("button", "btn ghost", "احذفها"); del.type = "button"; del.onclick = function () { delete words[cw.key]; saveWords(); paint(); renderChips(); updateBadge(); closeSheet(); }; act.appendChild(del); }
+        body.appendChild(act);
+      }
+      if (saved) { showResult({ base: saved.base, pos: saved.pos, ar: saved.ar, alt: saved.alt || [], note: saved.note }, true); return; }
+      body.appendChild(el("div", "pulse", "Claude يترجم الكلمة..."));
+      lookup(cw, { done: function (d) { showResult(d, false); }, fail: function (msg) { showResult({ ar: "", pos: "", alt: [], note: "", base: cw.word }, false); body.insertBefore(el("div", "meta", msg), body.firstChild); } });
+    });
+  }
+
+  /* ================= كلماتي: مجلدات ================= */
+  var DECKS = [
+    { id: "a0", name: "A0", sub: "Pre-A1 · ابدأ من الصفر", folder: true, w: "" },
+    { id: "a0_letters", name: "الحروف A–Z", sub: "Alphabet", t: "Aa", parent: "a0", w: "A:أيه|B:بي|C:سي|D:دي|E:إي|F:إف|G:جي|H:إيتش|I:آي|J:جاي|K:كيه|L:إل|M:إم|N:إن|O:أو|P:پي|Q:كيو|R:آر|S:إس|T:تي|U:يو|V:ڤي|W:دبليو|X:إكس|Y:واي|Z:زد" },
+    { id: "a0_numbers", name: "الأرقام", sub: "Numbers", t: "123", parent: "a0", w: "zero:صفر|one:واحد|two:اثنان|three:ثلاثة|four:أربعة|five:خمسة|six:ستة|seven:سبعة|eight:ثمانية|nine:تسعة|ten:عشرة|eleven:أحد عشر|twelve:اثنا عشر|thirteen:ثلاثة عشر|fourteen:أربعة عشر|fifteen:خمسة عشر|sixteen:ستة عشر|seventeen:سبعة عشر|eighteen:ثمانية عشر|nineteen:تسعة عشر|twenty:عشرون|thirty:ثلاثون|forty:أربعون|fifty:خمسون|sixty:ستون|seventy:سبعون|eighty:ثمانون|ninety:تسعون|one hundred:مئة|one thousand:ألف|one million:مليون|first:الأول|second:الثاني|third:الثالث|half:نصف" },
+    { id: "a0_colors", name: "الألوان", sub: "Colors", t: "Col", parent: "a0", w: "red:أحمر|blue:أزرق|green:أخضر|yellow:أصفر|black:أسود|white:أبيض|orange:برتقالي|pink:وردي|purple:بنفسجي|brown:بني|gray:رمادي|gold:ذهبي|silver:فضي|light blue:أزرق فاتح|dark:داكن|light:فاتح|color:لون" },
+    { id: "a0_days", name: "الأيام والأشهر والفصول", sub: "Days & months", t: "Mon", parent: "a0", w: "Monday:الاثنين|Tuesday:الثلاثاء|Wednesday:الأربعاء|Thursday:الخميس|Friday:الجمعة|Saturday:السبت|Sunday:الأحد|January:يناير|February:فبراير|March:مارس|April:أبريل|May:مايو|June:يونيو|July:يوليو|August:أغسطس|September:سبتمبر|October:أكتوبر|November:نوفمبر|December:ديسمبر|day:يوم|week:أسبوع|month:شهر|year:سنة|today:اليوم|tomorrow:غداً|yesterday:أمس|spring:الربيع|summer:الصيف|autumn:الخريف|winter:الشتاء" },
+    { id: "a0_pron", name: "الضمائر وكلمات السؤال", sub: "Pronouns & questions", t: "I", parent: "a0", w: "I:أنا|you:أنت أو أنتم|he:هو|she:هي|it:هو أو هي لغير العاقل|we:نحن|they:هم|me:لي أو إياي|my:ي (ملكي)|your:ك (ملكك)|his:ـه (ملكه)|her:ها (ملكها)|our:نا (ملكنا)|their:هم (ملكهم)|this:هذا|that:ذلك|these:هؤلاء|those:أولئك|here:هنا|there:هناك|who:من|what:ماذا|where:أين|when:متى|why:لماذا|how:كيف|am:أكون (مع I)|is:يكون (مع he وshe وit)|are:تكون (مع you وwe وthey)" },
+    { id: "a0_daily", name: "كلمات يومية سهلة", sub: "Everyday words", t: "Hi", parent: "a0", w: "yes:نعم|no:لا|hello:مرحباً|hi:أهلاً|bye:مع السلامة|please:من فضلك|thanks:شكراً|sorry:آسف|welcome:أهلاً بك|water:ماء|food:طعام|bread:خبز|milk:حليب|tea:شاي|coffee:قهوة|home:بيت|school:مدرسة|work:عمل|car:سيارة|book:كتاب|pen:قلم|phone:هاتف|door:باب|table:طاولة|chair:كرسي|man:رجل|woman:امرأة|boy:ولد|girl:بنت|baby:طفل رضيع|friend:صديق|mother:أم|father:أب|brother:أخ|sister:أخت|cat:قطة|dog:كلب|big:كبير|small:صغير|good:جيد|bad:سيئ|hot:حار|cold:بارد|new:جديد|old:قديم|happy:سعيد|sad:حزين|eat:يأكل|drink:يشرب|go:يذهب|come:يأتي|sit:يجلس|stand:يقف|open:يفتح|close:يغلق|like:يحب|want:يريد|have:يملك|see:يرى|know:يعرف|help:يساعد|name:اسم|time:وقت|money:مال|city:مدينة|day and night:ليل ونهار" },
+    { id: "a0_sent", name: "جمل بسيطة", sub: "Simple sentences", t: "“ ”", parent: "a0", w: "My name is Ahmed.:اسمي أحمد.|What is your name?:ما اسمك؟|I am from Saudi Arabia.:أنا من السعودية.|I am a student.:أنا طالب.|I am 25 years old.:عمري 25 سنة.|How are you?:كيف حالك؟|I am fine, thank you.:أنا بخير، شكراً.|Nice to meet you.:تشرفت بمعرفتك.|Good morning.:صباح الخير.|Good night.:تصبح على خير.|This is my friend.:هذا صديقي.|I like coffee.:أنا أحب القهوة.|I have a book.:عندي كتاب.|She is my sister.:هي أختي.|He is a teacher.:هو معلم.|We are at home.:نحن في البيت.|They are happy.:هم سعداء.|Where is the bathroom?:أين الحمام؟|How much is this?:بكم هذا؟|I do not understand.:أنا لا أفهم.|Please speak slowly.:تكلم ببطء من فضلك.|Can you help me?:هل تستطيع مساعدتي؟|I want water.:أريد ماء.|Thank you very much.:شكراً جزيلاً.|See you tomorrow.:أراك غداً.|Today is Monday.:اليوم هو الاثنين.|It is hot today.:الجو حار اليوم.|I love my family.:أحب عائلتي." },
+    { id: "a1", name: "A1", sub: "Beginner", w: "yes:نعم|no:لا|hello:مرحباً|hi:أهلاً|goodbye:وداعاً|bye:باي|please:من فضلك|thank you:شكراً|sorry:آسف|excuse me:عفواً|good morning:صباح الخير|good night:تصبح على خير|how are you?:كيف حالك؟|fine:بخير|my name is:اسمي|water:ماء|food:طعام|house:بيت|car:سيارة|book:كتاب|man:رجل|woman:امرأة|boy:ولد|girl:بنت|friend:صديق|big:كبير|small:صغير|hot:حار|cold:بارد|good:جيد|bad:سيئ|one:واحد|two:اثنان|three:ثلاثة|four:أربعة|five:خمسة|red:أحمر|blue:أزرق|green:أخضر|today:اليوم" },
+    { id: "a2", name: "A2", sub: "Elementary", w: "always:دائماً|sometimes:أحياناً|never:أبداً|because:لأن|but:لكن|with:مع|without:بدون|tomorrow:غداً|yesterday:أمس|morning:الصباح|evening:المساء|week:أسبوع|month:شهر|year:سنة|early:مبكراً|late:متأخراً|ask:يسأل|answer:يجيب|wait:ينتظر|buy:يشتري|sell:يبيع|open:يفتح|close:يغلق|start:يبدأ|finish:ينهي|easy:سهل|difficult:صعب|cheap:رخيص|expensive:غالٍ|near:قريب|far:بعيد" },
+    { id: "b1", name: "B1", sub: "Intermediate", w: "achieve:يحقق|improve:يحسّن|suggest:يقترح|decide:يقرر|avoid:يتجنب|protect:يحمي|manage:يدير|develop:يطوّر|experience:خبرة|opportunity:فرصة|environment:بيئة|society:مجتمع|government:حكومة|relationship:علاقة|knowledge:معرفة|ability:قدرة|reason:سبب|result:نتيجة|advantage:ميزة|disadvantage:عيب|whether:ما إذا|although:مع أن|however:مع ذلك|probably:غالباً|recently:مؤخراً" },
+    { id: "b2", name: "B2", sub: "Upper-intermediate", w: "reluctant:متردد|thorough:شامل ودقيق|reliable:موثوق|essential:أساسي|significant:مهم|consequence:عاقبة|hesitate:يتردد|enhance:يعزز|contribute:يساهم|assume:يفترض|estimate:يقدّر|obtain:يحصل على|reveal:يكشف|challenge:تحدٍّ|approach:نهج|priority:أولوية|resilient:مرن|ambiguous:غامض|entire:كامل|sustain:يحافظ على" },
+    { id: "c1", name: "C1", sub: "Advanced", w: "" },
+    { id: "c2", name: "C2", sub: "Proficiency", w: "" },
+    { id: "topics", name: "مواضيع", sub: "Topics · مجلدات المواضيع", t: "Aa", folder: true, w: "" },
+    { id: "food", name: "الطعام والشراب", sub: "Food & drink", parent: "topics", w: "rice:أرز|chicken:دجاج|meat:لحم|fish:سمك|egg:بيضة|cheese:جبن|butter:زبدة|sugar:سكر|salt:ملح|juice:عصير|apple:تفاح|banana:موز|tomato:طماطم|potato:بطاطس|onion:بصل|soup:شوربة|salad:سلطة|breakfast:فطور|lunch:غداء|dinner:عشاء|hungry:جائع|thirsty:عطشان|delicious:لذيذ|menu:قائمة الطعام|bill:الفاتورة|vegetable:خضار|fruit:فاكهة|garlic:ثوم|carrot:جزر|cucumber:خيار|lettuce:خس|pepper:فلفل|mushroom:فطر|lemon:ليمون|grape:عنب|strawberry:فراولة|watermelon:بطيخ|peach:خوخ|date:تمر|olive:زيتون|nut:مكسرات|honey:عسل|jam:مربى|oil:زيت|flour:طحين|pasta:معكرونة|sandwich:ساندويتش|burger:برجر|pizza:بيتزا|cake:كعكة|chocolate:شوكولاتة|ice cream:آيس كريم|biscuit:بسكويت|snack:وجبة خفيفة|waiter:نادل|tip:بقشيش|spicy:حار (بالتوابل)|sweet:حلو|sour:حامض|bitter:مرّ|fresh:طازج|cook:يطبخ|bake:يخبز|fry:يقلي|boil:يغلي|cut:يقطع|slice:شريحة|spoon:ملعقة|fork:شوكة|knife:سكين|plate:صحن|cup:فنجان|glass:كأس|bottle:زجاجة|bowl:وعاء|oven:فرن|fridge:ثلاجة" },
+    { id: "people", name: "الأشخاص والعائلة", sub: "People & family", parent: "topics", w: "son:ابن|daughter:ابنة|grandfather:جد|grandmother:جدة|uncle:عم|aunt:عمة|cousin:ابن العم|husband:زوج|wife:زوجة|child:طفل|teacher:معلم|doctor:طبيب|nurse:ممرض|neighbor:جار|student:طالب|boss:مدير|guest:ضيف|stranger:غريب|people:ناس|grandson:حفيد|nephew:ابن الأخ|niece:ابنة الأخ|parents:الوالدان|relatives:الأقارب|colleague:زميل عمل|customer:زبون|manager:مدير|employee:موظف|engineer:مهندس|lawyer:محامي|driver:سائق|pilot:طيار|farmer:مزارع|police officer:شرطي|soldier:جندي|artist:فنان|singer:مغني|writer:كاتب|king:ملك|queen:ملكة|young:شاب|elderly:مسن|married:متزوج|single:أعزب|twin:توأم|adult:بالغ|teenager:مراهق|crowd:حشد|team:فريق|group:مجموعة|couple:زوجان|age:عمر|birthday:عيد ميلاد|wedding:زواج|gift:هدية|party:حفلة|marry:يتزوج|introduce:يقدّم (شخصاً)|meet:يقابل|invite:يدعو|visit:يزور" },
+    { id: "health", name: "الصحة والجسم", sub: "Health & body", parent: "topics", w: "head:رأس|eye:عين|ear:أذن|nose:أنف|mouth:فم|hand:يد|leg:ساق|stomach:معدة|back:ظهر|heart:قلب|pain:ألم|fever:حمى|cough:سعال|medicine:دواء|hospital:مستشفى|pharmacy:صيدلية|healthy:صحي|sick:مريض|tired:متعب|headache:صداع|body:جسم|face:وجه|hair:شعر|neck:رقبة|shoulder:كتف|arm:ذراع|finger:إصبع|knee:ركبة|foot:قدم|skin:جلد|bone:عظم|blood:دم|tooth:سن|tongue:لسان|throat:حلق|chest:صدر|brain:دماغ|lungs:رئتان|muscle:عضلة|illness:مرض|disease:داء|flu:إنفلونزا|toothache:ألم أسنان|stomachache:ألم معدة|allergy:حساسية|infection:عدوى|wound:جرح|injury:إصابة|bandage:ضمادة|tablet:حبة دواء|prescription:وصفة طبية|vaccine:لقاح|surgery:عملية جراحية|ambulance:إسعاف|emergency:طوارئ|patient:مريض|test:فحص|temperature:حرارة|diet:حمية|exercise:تمرين|rest:راحة|sleep:ينام|recover:يتعافى|breathe:يتنفس|bleed:ينزف|hurt:يؤلم|weak:ضعيف|strong:قوي|dizzy:دائخ|safe:آمن|dangerous:خطير|vitamin:فيتامين" },
+    { id: "travel", name: "السفر والأماكن", sub: "Travel & places", parent: "topics", w: "airport:مطار|ticket:تذكرة|passport:جواز سفر|luggage:أمتعة|flight:رحلة جوية|train:قطار|bus:حافلة|taxi:سيارة أجرة|hotel:فندق|reservation:حجز|map:خريطة|tourist:سائح|border:حدود|customs:الجمارك|departure:مغادرة|arrival:وصول|delay:تأخير|gate:بوابة|seat:مقعد|journey:رحلة|destination:وجهة|visa:تأشيرة|trip:رحلة|tour:جولة|guide:مرشد|souvenir:تذكار|boarding pass:بطاقة صعود|terminal:صالة|cancel:يلغي|arrive:يصل|depart:يغادر|check in:يسجّل الوصول|check out:يغادر الفندق|single room:غرفة فردية|double room:غرفة مزدوجة|receptionist:موظف الاستقبال|elevator:مصعد|stairs:درج|street:شارع|road:طريق|bridge:جسر|corner:زاوية|traffic:زحام|traffic light:إشارة مرور|crossing:معبر|station:محطة|metro:مترو|ship:سفينة|boat:قارب|bicycle:دراجة|motorcycle:دراجة نارية|petrol:بنزين|parking:موقف|left:يسار|right:يمين|straight:مباشرة|north:شمال|south:جنوب|east:شرق|west:غرب|beach:شاطئ|mountain:جبل|desert:صحراء|island:جزيرة|museum:متحف|market:سوق|mosque:مسجد|bank:بنك|post office:مكتب بريد|embassy:سفارة|currency:عملة|exchange:صرف|lost:ضائع|ticket office:شباك التذاكر" },
+    { id: "home", name: "البيت", sub: "Home", parent: "topics", w: "room:غرفة|kitchen:مطبخ|bathroom:حمام|bedroom:غرفة نوم|living room:غرفة المعيشة|window:نافذة|bed:سرير|sofa:أريكة|lamp:مصباح|key:مفتاح|floor:أرضية|wall:جدار|roof:سقف|garden:حديقة|carpet:سجادة|apartment:شقة|villa:فيلا|garage:مرآب|balcony:شرفة|curtain:ستارة|pillow:وسادة|blanket:بطانية|mattress:مرتبة|wardrobe:خزانة ملابس|shelf:رف|drawer:درج مكتب|mirror:مرآة|clock:ساعة حائط|television:تلفاز|washing machine:غسالة|air conditioner:مكيف|fan:مروحة|heater:دفاية|switch:مفتاح كهرباء|socket:مقبس|toilet:مرحاض|shower:دش|towel:منشفة|soap:صابون|shampoo:شامبو|toothbrush:فرشاة أسنان|toothpaste:معجون أسنان|broom:مكنسة|bucket:دلو|trash:قمامة|clean:نظيف|dirty:وسخ|tidy:مرتب|messy:فوضوي|wash:يغسل|sweep:يكنس|repair:يصلح|rent:إيجار|landlord:مالك البيت|tenant:مستأجر|furniture:أثاث|address:عنوان|neighborhood:حي|floor level:طابق" },
+    { id: "clothes", name: "الملابس", sub: "Clothes", parent: "topics", w: "clothes:ملابس|shirt:قميص|T-shirt:تيشيرت|trousers:بنطلون|jeans:جينز|skirt:تنورة|dress:فستان|jacket:جاكيت|coat:معطف|sweater:كنزة|suit:بدلة|tie:ربطة عنق|socks:جوارب|shoes:حذاء|boots:جزمة|sandals:صندل|slippers:شحاطة|hat:قبعة|cap:كاب|scarf:وشاح|gloves:قفازات|belt:حزام|bag:حقيبة|watch:ساعة يد|ring:خاتم|necklace:قلادة|glasses:نظارة|sunglasses:نظارة شمسية|umbrella:مظلة|pocket:جيب|button:زر|zip:سحّاب|size:مقاس|fit:يناسب|try on:يجرّب|wear:يرتدي|put on:يلبس|take off:يخلع|tight:ضيق|loose:واسع|short:قصير|long:طويل|cotton:قطن|wool:صوف|leather:جلد" },
+    { id: "shopping", name: "التسوق", sub: "Shopping", parent: "topics", w: "shop:متجر|mall:مجمع تجاري|supermarket:سوبرماركت|store:محل|price:سعر|discount:خصم|sale:تخفيضات|cash:نقد|credit card:بطاقة ائتمان|change:باقي المبلغ|receipt:إيصال|cashier:محاسب|basket:سلة|cart:عربة|customer service:خدمة العملاء|refund:استرداد|return:يرجع (يعيد)|pay:يدفع|spend:ينفق|save:يوفّر|cost:يكلّف|afford:يستطيع شراءه|order:يطلب|deliver:يوصّل|delivery:توصيل|brand:ماركة|quality:جودة|offer:عرض|free:مجاني|wallet:محفظة|coin:عملة معدنية|note:ورقة نقدية|bargain:يساوم|worth:يستحق" },
+    { id: "school", name: "الدراسة", sub: "School", parent: "topics", w: "university:جامعة|college:كلية|class:صف|lesson:درس|homework:واجب|exam:امتحان|grade:درجة|degree:شهادة|subject:مادة|science:علوم|math:رياضيات|history:تاريخ|geography:جغرافيا|language:لغة|library:مكتبة|notebook:دفتر|pencil:قلم رصاص|eraser:ممحاة|ruler:مسطرة|desk:مكتب|board:سبورة|dictionary:قاموس|question:سؤال|mistake:خطأ|correct:صحيح|wrong:خاطئ|learn:يتعلم|teach:يعلّم|study:يدرس|read:يقرأ|write:يكتب|listen:يستمع|speak:يتكلم|practice:يتدرب|remember:يتذكر|forget:ينسى|understand:يفهم|explain:يشرح|pass:ينجح|fail:يرسب|graduate:يتخرج|education:تعليم" },
+    { id: "work", name: "العمل", sub: "Work", parent: "topics", w: "job:وظيفة|career:مسيرة مهنية|company:شركة|office:مكتب عمل|meeting:اجتماع|project:مشروع|task:مهمة|deadline:موعد نهائي|salary:راتب|contract:عقد|interview:مقابلة|resume:سيرة ذاتية|skill:مهارة|team leader:قائد فريق|department:قسم|schedule:جدول|report:تقرير|email:بريد إلكتروني|call:اتصال|message:رسالة|appointment:موعد|business:تجارة|profit:ربح|loss:خسارة|budget:ميزانية|hire:يوظّف|fire:يفصل|resign:يستقيل|retire:يتقاعد|apply:يتقدم|work hard:يجتهد|busy:مشغول|free time:وقت فراغ|overtime:عمل إضافي|holiday:إجازة|retirement:تقاعد|promotion:ترقية" },
+    { id: "nature", name: "الطبيعة والحيوانات والطقس", sub: "Nature", parent: "topics", w: "weather:طقس|sun:شمس|moon:قمر|star:نجمة|sky:سماء|cloud:غيمة|rain:مطر|snow:ثلج|wind:رياح|storm:عاصفة|thunder:رعد|lightning:برق|fog:ضباب|ice:جليد|sunny:مشمس|cloudy:غائم|rainy:ممطر|windy:عاصف|humid:رطب|dry:جاف|warm:دافئ|cool:بارد قليلاً|tree:شجرة|flower:وردة|grass:عشب|leaf:ورقة|forest:غابة|river:نهر|lake:بحيرة|sea:بحر|ocean:محيط|valley:وادي|hill:تل|rock:صخرة|sand:رمل|earth:أرض|smoke:دخان|animal:حيوان|bird:طائر|horse:حصان|camel:جمل|sheep:خروف|cow:بقرة|lion:أسد|monkey:قرد|snake:ثعبان|insect:حشرة|recycle:يعيد التدوير|pollution:تلوث" },
+    { id: "feelings", name: "المشاعر والصفات", sub: "Feelings", parent: "topics", w: "feeling:شعور|emotion:عاطفة|angry:غاضب|afraid:خائف|nervous:متوتر|worried:قلق|surprised:متفاجئ|excited:متحمس|bored:ملول|lonely:وحيد|proud:فخور|shy:خجول|jealous:غيور|confident:واثق|calm:هادئ|relaxed:مرتاح|upset:منزعج|disappointed:محبط|grateful:ممتن|kind:لطيف|polite:مهذب|rude:وقح|honest:صادق|brave:شجاع|lazy:كسول|clever:ذكي|funny:مضحك|serious:جاد|generous:كريم|selfish:أناني|friendly:ودود|smile:يبتسم|laugh:يضحك|cry:يبكي|hug:يعانق|kiss:يقبّل|miss:يشتاق|trust:يثق|hope:يأمل|wish:يتمنى|dream:حلم|fear:خوف|joy:فرح" },
+    { id: "tech", name: "التقنية والإنترنت", sub: "Technology", parent: "topics", w: "computer:حاسوب|laptop:لابتوب|screen:شاشة|keyboard:لوحة مفاتيح|mouse:فأرة|printer:طابعة|camera:كاميرا|photo:صورة|video:فيديو|internet:إنترنت|website:موقع|app:تطبيق|password:كلمة مرور|account:حساب|username:اسم مستخدم|link:رابط|file:ملف|folder:مجلد|download:يحمّل|upload:يرفع|install:يثبّت|update:يحدّث|delete:يحذف|search:يبحث|click:ينقر|type:يكتب بلوحة|send:يرسل|receive:يستلم|share:يشارك|follow:يتابع|post:ينشر|battery:بطارية|charger:شاحن|cable:كابل|signal:إشارة|wifi:واي فاي|network:شبكة|data:بيانات|robot:روبوت|artificial intelligence:ذكاء اصطناعي|social media:وسائل التواصل" },
+    { id: "sports", name: "الرياضة والهوايات", sub: "Sports & hobbies", parent: "topics", w: "sport:رياضة|game:لعبة|match:مباراة|player:لاعب|coach:مدرب|ball:كرة|goal:هدف|score:نتيجة|win:يفوز|lose:يخسر|draw:تعادل|race:سباق|swim:يسبح|run:يجري|jump:يقفز|throw:يرمي|catch:يمسك|kick:يركل|hit:يضرب|football:كرة قدم|basketball:كرة سلة|tennis:تنس|volleyball:كرة طائرة|swimming:سباحة|cycling:ركوب الدراجة|gym:نادي رياضي|stadium:ملعب|champion:بطل|medal:ميدالية|hobby:هواية|music:موسيقى|song:أغنية|guitar:غيتار|piano:بيانو|paint:يرسم بالألوان|dance:يرقص|sing:يغني|photography:تصوير|film:فيلم|cinema:سينما|theater:مسرح|camping:تخييم|fishing:صيد" },
+    { id: "common", name: "كلمات عامة", sub: "Common words", parent: "topics", w: "thing:شيء|place:مكان|way:طريقة|idea:فكرة|problem:مشكلة|solution:حل|example:مثال|story:قصة|news:أخبار|information:معلومات|difference:فرق|chance:فرصة|choice:خيار|plan:خطة|rule:قاعدة|law:قانون|duty:واجب|truth:حقيقة|lie:كذبة|secret:سر|luck:حظ|success:نجاح|failure:فشل|possible:ممكن|impossible:مستحيل|important:مهم|useful:مفيد|useless:عديم الفائدة|famous:مشهور|popular:شعبي|rich:غني|poor:فقير|empty:فارغ|full:ممتلئ|heavy:ثقيل|fast:سريع|slow:بطيء|soon:قريباً|again:مرة أخرى|together:معاً|alone:وحده|maybe:ربما|certainly:بالتأكيد|especially:خصوصاً|already:بالفعل|almost:تقريباً|enough:كافٍ|too much:كثير جداً|a little:قليلاً|a lot:كثيراً" },
+  ];
+  var DW = {};
+  var ICONS = {
+    spk: '<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 010 6"/><path d="M18.5 6.5a8 8 0 010 11"/></svg>',
+    pen: '<svg viewBox="0 0 24 24"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 7l3 3"/></svg>',
+    eye: '<svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+    play: '<svg viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z" fill="currentColor"/></svg>'
+  };
+  var wv = { back: null, deck: null, hide: false, edit: false, filter: "all", q: "", lim: 150 };
+  var DECKCOL = { a1: "#46A4FF", a2: "#26BFA2", b1: "#9576F5", b2: "#F8A24F", a0: "#7DD3C0", topics: "#3FBF84", food: "#EE6A6A", people: "#DC82BC", health: "#3FBF84", travel: "#4BA6D8", home: "#C79D45", c1: "#E5657A", c2: "#7B8CFF", food: "#EE6A6A", people: "#DC82BC", health: "#3FBF84", travel: "#4BA6D8", home: "#C79D45", mine: "#5C667D", a0_letters: "#46A4FF", a0_numbers: "#26BFA2", a0_colors: "#EE6A6A", a0_days: "#9576F5", a0_pron: "#F8A24F", a0_daily: "#3FBF84", a0_sent: "#DC82BC", clothes: "#B06AE0", shopping: "#E0B03F", school: "#46A4FF", work: "#5CC8E8", nature: "#26BFA2", feelings: "#E5657A", tech: "#7B8CFF", sports: "#F8A24F", common: "#4BA6D8" };
+  var DECKGROUPS = [["mine", ""], ["lvl", "المستويات"], ["topic", "المواضيع"], ["custom", "مجلداتي"]];
+
+  function progKey(id, k) { return id + "|" + k; }
+  function parseDeck(d) {
+    if (!DW[d.id]) DW[d.id] = (d.w || "").split("|").filter(Boolean).map(function (p) { var i = p.indexOf(":"); return { en: p.slice(0, i).trim(), ar: p.slice(i + 1).trim() }; });
+    return DW[d.id];
+  }
+  function allDecks() {
+    var out = [{ id: "mine", name: "كلماتي المحفوظة", sub: "من القراءة", kind: "mine" }];
+    DECKS.forEach(function (d) { out.push({ id: d.id, name: d.name, sub: d.sub, t: d.t, w: d.w, parent: d.parent, folder: d.folder, kind: "built" }); });
+    S.decks.forEach(function (d) { out.push({ id: d.id, name: d.name, sub: "", kind: "custom" }); });
+    return out;
+  }
+  /* ---- قوائم المستويات الكاملة (A1-C2) تتحمّل دفعات وتنحفظ في الجوال ---- */
+  var LVL = { a1: { L: "A1", start: 0, n: 1500 }, a2: { L: "A2", start: 1500, n: 1000 }, b1: { L: "B1", start: 2500, n: 1500 }, b2: { L: "B2", start: 4000, n: 2000 }, c1: { L: "C1", start: 6000, n: 2000 }, c2: { L: "C2", start: 8000, n: 4000 } };
+  var LSB = "maqta.big.v1", BIG = { w: {}, pos: {} }, bigRun = null;
+  try { var _b = JSON.parse(localStorage.getItem(LSB) || "null"); if (_b && _b.w) BIG = _b; } catch (e) {}
+  function saveBig() { try { localStorage.setItem(LSB, JSON.stringify(BIG)); } catch (e) { toast("المساحة ممتلئة، ما قدرت أحفظ الكلمات"); } }
+  function globalKeys() {
+    var g = {};
+    DECKS.forEach(function (d) { parseDeck(d).forEach(function (p) { g[keyOf(p.en)] = 1; }); });
+    Object.keys(BIG.w).forEach(function (id) { BIG.w[id].forEach(function (p) { g[keyOf(p.en)] = 1; }); });
+    return g;
+  }
+  function bigBatch(id) {
+    var lv = LVL[id], pos = BIG.pos[id] || 0, N = 50;
+    if (pos >= lv.n) return Promise.resolve(0);
+    var have = BIG.w[id] || [], last = have.slice(-60).map(function (p) { return p.en; }).join(", ");
+    var prompt = "You are building a graded English vocabulary list for Arabic speakers.\nCEFR level: " + lv.L + ".\nGive exactly " + N + " English words (single dictionary-form words, lowercase, no proper nouns, no abbreviations, no duplicates) whose usefulness rank in general English is approximately #" + (lv.start + pos + 1) + " to #" + (lv.start + pos + N) + " (rank 1 = most common word overall).\nDo not include these words: " + last + ".\nReply with only a JSON array: [{\"en\": \"word\", \"ar\": \"short Arabic meaning, one to three words\"}]";
+    return sampleFn.json(prompt, { modelTier: "quick" }).then(function (r) {
+      var arr = Array.isArray(r) ? r : ((r && (r.words || r.list)) || []);
+      var g = globalKeys(), add = 0;
+      arr.forEach(function (p) {
+        var en = String((p && p.en) || "").trim().toLowerCase(), ar = String((p && p.ar) || "").trim();
+        if (!en || !ar || en.length > 30 || /[^a-z' -]/.test(en) || g[keyOf(en)]) return;
+        g[keyOf(en)] = 1; (BIG.w[id] = BIG.w[id] || []).push({ en: en, ar: ar }); add++;
+      });
+      BIG.pos[id] = pos + N; saveBig(); return add;
+    });
+  }
+  function startBig(id) {
+    if (!sampleFn) { toast("التحميل التلقائي غير متاح الآن"); return; }
+    if (bigRun) return; bigRun = id; renderWords();
+    (function loop() {
+      if (bigRun !== id) return;
+      bigBatch(id).then(function (n) {
+        if (bigRun !== id) return;
+        if (!n && (BIG.pos[id] || 0) >= LVL[id].n) { bigRun = null; renderWords(); toast("اكتمل مستوى " + LVL[id].L); return; }
+        if (wv.deck === id || !wv.deck) updateBigBar(id);
+        setTimeout(loop, 250);
+      }).catch(function (e) { bigRun = null; renderWords(); toast(e && e.code === "not_granted" ? "ما عندك صلاحية للتحميل" : "توقف التحميل. اضغط «حمّل» مرة ثانية"); });
+    })();
+  }
+  function stopBig() { bigRun = null; renderWords(); }
+  function updateBigBar(id) {
+    var bar = $("#bigbar"); if (!bar || wv.deck !== id) return;
+    var lv = LVL[id], pos = Math.min(lv.n, BIG.pos[id] || 0), c = (BIG.w[id] || []).length;
+    bar.querySelector(".bt b").textContent = c + " كلمة محمّلة";
+    bar.querySelector(".bar i").style.width = Math.round(pos / lv.n * 100) + "%";
+  }
+  function bigBar(id) {
+    var lv = LVL[id], pos = Math.min(lv.n, BIG.pos[id] || 0), c = (BIG.w[id] || []).length, done = pos >= lv.n;
+    var b = el("div", "bigbar"); b.id = "bigbar";
+    var t = el("div", "bt"); t.appendChild(el("b", null, c + " كلمة محمّلة")); t.appendChild(el("span", null, "الهدف نحو " + lv.n)); b.appendChild(t);
+    var bar = el("div", "bar"); var fill = el("i"); fill.style.width = Math.round(pos / lv.n * 100) + "%"; bar.appendChild(fill); b.appendChild(bar);
+    if (!done) {
+      var btn = el("button", "btn main small", bigRun === id ? "أوقف التحميل" : (c ? "كمّل التحميل" : "حمّل كلمات " + lv.L));
+      btn.type = "button"; btn.onclick = function () { if (bigRun === id) stopBig(); else startBig(id); }; b.appendChild(btn);
+      b.appendChild(el("p", "hint", "تتحمّل 50 كلمة كل مرة مع الترجمة، بدون تكرار مع المستويات الثانية. خلّ التطبيق مفتوح أثناء التحميل."));
+    } else b.appendChild(el("p", "hint", "اكتمل تحميل هذا المستوى."));
+    return b;
+  }
+  function entriesOf(d) {
+    if (d.id === "due") return dueEntries();
+    if (d.folder) { var _o = []; allDecks().forEach(function (c) { if (c.parent === d.id) _o = _o.concat(entriesOf(c)); }); return _o; }
+    if (d.id === "mine") return Object.keys(words).map(function (k) { return words[k]; });
+    var arr = d.kind === "custom" ? (S.decks.filter(function (x) { return x.id === d.id; })[0] || { words: [] }).words : (LVL[d.id] ? parseDeck(d).concat(BIG.w[d.id] || []) : parseDeck(d));
+    return arr.map(function (p) { var k = keyOf(p.en); return { key: k, word: p.en, base: p.en, ar: p.ar, sentence: "", level: S.prog[progKey(d.id, k)] || 0, deck: d.id }; });
+  }
+  function updateBadge() { var b = $("#badge"); b.textContent = count(); b.hidden = !count(); }
+  function iconBtn(name, label, on, fn) { var b = el("button", "ibtn" + (on ? " on" : "")); b.type = "button"; b.setAttribute("aria-label", label); b.innerHTML = ICONS[name]; b.onclick = fn; return b; }
+  function playDeck(list) {
+    stopSpeech(); var mine = ++tok, i = 0;
+    (function next() {
+      if (mine !== tok || i >= list.length) return;
+      var u = new SpeechSynthesisUtterance(list[i].word); u.lang = "en-US"; u.rate = 0.85;
+      u.onend = function () { i++; setTimeout(next, 350); }; u.onerror = function () {};
+      try { speechSynthesis.speak(u); } catch (e) { toast("النطق غير متاح على هذا الجهاز"); }
+    })();
+  }
+  function renderWords() { updateBadge(); if (wv.deck) renderDeck(); else renderDecks(); }
+  function deckGroup(d) { return d.parent ? "child" : d.id === "mine" ? "mine" : (["a0", "a1", "a2", "b1", "b2", "c1", "c2"].indexOf(d.id) >= 0 ? "lvl" : (d.kind === "custom" ? "custom" : "topic")); }
+  var TLAB = { topics: "Aa", food: "Food", people: "Fam", health: "Body", travel: "Trip", home: "Home", clothes: "Wear", shopping: "Shop", school: "Edu", work: "Job", nature: "Nat", feelings: "Feel", tech: "Tech", sports: "Sport", common: "Gen" };
+  var PAL = ["#46A4FF", "#26BFA2", "#9576F5", "#F8A24F", "#E5657A", "#7B8CFF", "#3FBF84", "#DC82BC", "#4BA6D8", "#C79D45", "#EE6A6A", "#B06AE0", "#E0B03F", "#5CC8E8"];
+  function deckColor(d) {
+    if (DECKCOL[d.id]) return DECKCOL[d.id];
+    var h = 0, id = String(d.id); for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+    return PAL[h % PAL.length];
+  }
+  function makeRow(d, back) {
+        var es = entriesOf(d), sum = es.reduce(function (a, w) { return a + Math.min(5, w.level || 0); }, 0);
+        var pct = es.length ? Math.round(sum / (es.length * 5) * 100) : 0;
+        var row = el("div", "deckrow"); row.setAttribute("role", "button"); row.tabIndex = 0;
+        var tile = el("div", "tile", d.t ? d.t : TLAB[d.id] ? TLAB[d.id] : d.kind === "built" && /^[A-Z0-9]+$/.test(d.name) ? d.name : (d.name.charAt(0) === "ك" && d.id === "mine" ? "★" : d.name.charAt(0)));
+        var tc = deckColor(d); tile.style.background = tc; tile.style.background = "linear-gradient(145deg, " + tc + ", color-mix(in srgb, " + tc + " 62%, #000))"; if (tile.textContent.length > 3) tile.style.fontSize = "13px"; tile.style.textShadow = "0 1px 2px rgba(0,0,0,.35)"; row.appendChild(tile);
+        var txt = el("div", "txt"); txt.appendChild(el("div", "nm", d.name));
+        txt.appendChild(el("div", "ct", (d.folder ? allDecks().filter(function (c) { return c.parent === d.id; }).length + " مجلد · " : "") + es.length + " كلمة · " + pct + "% متقن")); row.appendChild(txt);
+        var ring = el("button", "ring"); ring.type = "button"; ring.style.setProperty("--p", String(pct)); ring.setAttribute("aria-label", "ابدأ مراجعة " + d.name);
+        var inner = el("span"); inner.innerHTML = ICONS.play; ring.appendChild(inner);
+        ring.onclick = function (e) { e.stopPropagation(); if (!es.length) { toast("المجلد فاضي. أضف كلمات أولاً"); return; } rv.src = d.id; showView("review"); };
+        row.appendChild(ring);
+        row.onclick = function () { wv.deck = d.id; wv.back = back; wv.hide = false; wv.edit = false; wv.filter = "all"; wv.q = ""; wv.lim = 150; renderWords(); window.scrollTo(0, 0); };
+        row.onkeydown = function (e) { if (e.key === "Enter") row.onclick(); };
+        return row;
+  }
+  function renderDecks() {
+    $("#addfolder").hidden = false;
+    var box = $("#wbody"); box.textContent = "";
+    box.appendChild(el("div", "pagetitle", "كلماتي"));
+    var decks = allDecks(), totalW = 0, totalSum = 0;
+    decks.forEach(function (d) { if (d.id !== "mine" && !d.folder) entriesOf(d).forEach(function (w) { totalW++; if ((w.level || 0) >= 5) totalSum++; }); });
+    var mineKnown = Object.keys(words).filter(function (k) { return (words[k].level || 0) >= 5; }).length;
+    var sc = el("div", "sumcard"); sc.appendChild(el("div", "big", String(totalSum + mineKnown)));
+    var tx = el("div", "tx"); tx.appendChild(el("b", null, "كلمة أتقنتها")); tx.appendChild(el("span", null, "من " + (totalW + count()) + " كلمة في كل مجلداتك")); sc.appendChild(tx); box.appendChild(sc);
+    DECKGROUPS.forEach(function (g) {
+      var list = decks.filter(function (d) { return deckGroup(d) === g[0]; });
+      if (!list.length) return;
+      if (g[1]) box.appendChild(el("div", "gh", g[1]));
+      list.forEach(function (d) { box.appendChild(makeRow(d, null)); });
+    });
+  }
+  function renderDeck() {
+    var d = allDecks().filter(function (x) { return x.id === wv.deck; })[0];
+    if (!d) { wv.deck = null; renderDecks(); return; }
+    $("#addfolder").hidden = true;
+    var box = $("#wbody"); box.textContent = "";
+    var hd = el("div", "dhead");
+    var bk = el("button", "btn small ghost", "رجوع"); bk.type = "button"; bk.onclick = function () { wv.deck = wv.back || null; wv.back = null; stopSpeech(); renderWords(); }; hd.appendChild(bk);
+    hd.appendChild(el("div", "dt", d.name));
+    var es = entriesOf(d);
+    hd.appendChild(iconBtn("eye", "إخفاء الترجمة", wv.hide, function () { wv.hide = !wv.hide; renderDeck(); }));
+    hd.appendChild(iconBtn("spk", "اقرأ الكلمات", false, function () { if ("speechSynthesis" in window) playDeck(es); else toast("النطق غير متاح على هذا الجهاز"); }));
+    if (d.kind !== "built") hd.appendChild(iconBtn("pen", "تعديل", wv.edit, function () { wv.edit = !wv.edit; renderDeck(); }));
+    box.appendChild(hd);
+    if (d.folder) { allDecks().filter(function (c) { return c.parent === d.id; }).forEach(function (c) { box.appendChild(makeRow(c, d.id)); }); return; }
+    if (LVL[d.id]) box.appendChild(bigBar(d.id));
+    if (d.id === "mine") {
+      var ch = el("div", "fchips");
+      [["all", "الكل"], ["new", "جديدة"], ["learn", "أتعلمها"], ["known", "عرفتها"]].forEach(function (o) {
+        var n = o[0] === "all" ? es.length : es.filter(function (w) { return stateOf(w) === o[0]; }).length;
+        var b = el("button", "fchip", o[1] + " " + n); b.type = "button"; b.setAttribute("aria-pressed", String(wv.filter === o[0])); b.onclick = function () { wv.filter = o[0]; renderDeck(); }; ch.appendChild(b);
+      });
+      box.appendChild(ch);
+      es = es.filter(function (w) { return wv.filter === "all" || stateOf(w) === wv.filter; }).sort(function (a, b) { return (b.added || 0) - (a.added || 0); });
+    }
+    if (entriesOf(d).length > 8) {
+      var q = el("input", "field dsearch"); q.id = "dsearch"; q.type = "search"; q.placeholder = "ابحث في الكلمات"; q.value = wv.q; q.setAttribute("aria-label", "بحث");
+      q.oninput = function () { wv.q = q.value; wv.lim = 150; var pos = q.selectionStart; renderDeck(); var n = $("#dsearch"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} } };
+      box.appendChild(q);
+      var qq = (wv.q || "").trim().toLowerCase();
+      if (qq) es = es.filter(function (w) { return w.word.toLowerCase().indexOf(qq) >= 0 || (w.ar || "").indexOf(qq) >= 0; });
+    }
+    if (!es.length) { box.appendChild(el("div", "empty", d.id === "mine" ? "ما حفظت كلمات للحين. اضغط على أي كلمة في النص، أو أضف كلمة بزر +" : "المجلد فاضي. أضف كلمة بزر +")); return; }
+    var totalEs = es.length; es = es.slice(0, wv.lim);
+    es.forEach(function (w) {
+      var row = el("div", "wrow" + (wv.hide ? " hid" : ""));
+      var sp = el("button", "spk"); sp.type = "button"; sp.setAttribute("aria-label", "استمع"); sp.innerHTML = ICONS.spk; sp.onclick = function (e) { e.stopPropagation(); speak(w.word); }; row.appendChild(sp);
+      row.appendChild(el("div", "wen", w.word)); row.appendChild(el("div", "war", w.ar));
+      if (wv.edit && d.kind !== "built") {
+        var x = el("button", "xbtn", "×"); x.type = "button"; x.setAttribute("aria-label", "حذف"); x.onclick = function (e) {
+          e.stopPropagation();
+          if (d.id === "mine") { delete words[w.key]; saveWords(); }
+          else { var cd = S.decks.filter(function (q) { return q.id === d.id; })[0]; if (cd) { cd.words = cd.words.filter(function (p) { return keyOf(p.en) !== w.key; }); saveState(); } }
+          renderDeck(); renderChips(); updateBadge();
+        }; row.appendChild(x);
+      } else {
+        var lv = (w.level || 0) >= 5 ? "known" : ((w.level || 0) >= 2 ? "learn" : ((w.level || 0) >= 1 ? "new" : ""));
+        row.appendChild(el("i", "wlv " + lv));
+      }
+      row.onclick = function () {
+        if (wv.hide) { row.classList.toggle("rev"); return; }
+        var old = row.querySelector(".pr"); if (old) { old.remove(); return; }
+        var pr = el("div", "pr", "..."); row.appendChild(pr);
+        getPron(w.word).then(function (o) { pr.textContent = pronText(o) || "—"; }).catch(function () { pr.textContent = "النطق يحتاج اتصال بالذكاء الاصطناعي"; });
+      };
+      box.appendChild(row);
+    });
+    if (totalEs > es.length) { var more = el("button", "btn small", "اعرض المزيد (" + (totalEs - es.length) + ")"); more.type = "button"; more.onclick = function () { wv.lim += 200; renderDeck(); }; box.appendChild(more); }
+  }
+
+  /* ---- إضافة كلمة / مجلد ---- */
+  function openAddWord() {
+    var targets = [{ id: "mine", name: "كلماتي المحفوظة" }].concat(S.decks.map(function (d) { return { id: d.id, name: d.name }; }));
+    var tgt = (wv.deck && targets.some(function (t) { return t.id === wv.deck; })) ? wv.deck : "mine";
+    openSheet(function (box) {
+      box.appendChild(el("div", "sec", "إضافة كلمة"));
+      var en = el("input", "field"); en.id = "aw-en"; en.placeholder = "English word"; en.setAttribute("aria-label", "الكلمة بالإنجليزي"); en.autocapitalize = "off"; box.appendChild(en);
+      var ar = el("input", "field"); ar.id = "aw-ar"; ar.placeholder = "المعنى بالعربي"; ar.dir = "rtl"; ar.style.textAlign = "right"; ar.style.fontFamily = "var(--ui)"; ar.setAttribute("aria-label", "المعنى بالعربي"); box.appendChild(ar);
+      var tr = el("button", "btn ghost small", "ترجم تلقائياً"); tr.type = "button"; tr.style.justifySelf = "start";
+      tr.onclick = function () {
+        var e = en.value.trim(), a = ar.value.trim(); if (!e && !a) { toast("اكتب الكلمة أو المعنى أولاً"); return; }
+        if (!sampleFn) { toast("الترجمة التلقائية غير متاحة"); return; }
+        tr.disabled = true; tr.textContent = "يترجم...";
+        sampleFn.json("Reply with only a JSON object {\"en\": the English word or short phrase, \"ar\": its short Arabic meaning}. Input (English or Arabic): \"" + (e || a) + "\"", { modelTier: "quick" })
+          .then(function (r) { if (r && r.en) en.value = String(r.en); if (r && r.ar) ar.value = String(r.ar); })
+          .catch(function () { toast("تعذّرت الترجمة. اكتب المعنى بنفسك"); })
+          .then(function () { tr.disabled = false; tr.textContent = "ترجم تلقائياً"; });
+      };
+      box.appendChild(tr);
+      box.appendChild(el("div", "hint", "احفظها في:"));
+      var chips = el("div", "fchips"); chips.style.flexWrap = "wrap";
+      function drawChips() { chips.textContent = ""; targets.forEach(function (t) { var b = el("button", "fchip", t.name); b.type = "button"; b.setAttribute("aria-pressed", String(tgt === t.id)); b.onclick = function () { tgt = t.id; drawChips(); }; chips.appendChild(b); }); }
+      drawChips(); box.appendChild(chips);
+      var row = el("div", "row"); var ok = el("button", "btn main", "احفظ"); ok.type = "button";
+      ok.onclick = function () {
+        var e = en.value.trim(), a = ar.value.trim(); if (!e || !a) { toast("اكتب الكلمة والمعنى، أو اضغط «ترجم تلقائياً»"); return; }
+        var k = keyOf(e);
+        if (tgt === "mine") { var prev = words[k]; words[k] = { key: k, word: e, base: e, pos: "", ar: a, alt: [], note: "", sentence: prev ? prev.sentence : "", level: prev ? prev.level : 1, added: prev ? prev.added : Date.now() }; saveWords(); }
+        else { var cd = S.decks.filter(function (q) { return q.id === tgt; })[0]; if (!cd) return; var ex = cd.words.filter(function (p) { return keyOf(p.en) === k; })[0]; if (ex) ex.ar = a; else cd.words.push({ en: e, ar: a }); saveState(); }
+        markDay(); closeSheet(); renderWords(); renderChips(); toast("تمت الإضافة");
+      };
+      var cl = el("button", "btn ghost", "إلغاء"); cl.type = "button"; cl.onclick = closeSheet; row.appendChild(ok); row.appendChild(cl); box.appendChild(row);
+    });
+  }
+  function openAddFolder() {
+    openSheet(function (box) {
+      box.appendChild(el("div", "sec", "مجلد جديد"));
+      var nm = el("input", "field"); nm.id = "af-name"; nm.placeholder = "اسم المجلد"; nm.dir = "rtl"; nm.style.textAlign = "right"; nm.style.fontFamily = "var(--ui)"; nm.setAttribute("aria-label", "اسم المجلد"); box.appendChild(nm);
+      var row = el("div", "row"); var ok = el("button", "btn main", "أنشئ"); ok.type = "button";
+      ok.onclick = function () { var n = nm.value.trim(); if (!n) { toast("اكتب اسم المجلد"); return; } S.decks.push({ id: "d" + Date.now(), name: n, words: [] }); saveState(); closeSheet(); wv.deck = null; renderWords(); toast("تم إنشاء المجلد"); };
+      var cl = el("button", "btn ghost", "إلغاء"); cl.type = "button"; cl.onclick = closeSheet; row.appendChild(ok); row.appendChild(cl); box.appendChild(row);
+    });
+  }
+  $("#fab").addEventListener("click", openAddWord);
+  $("#addfolder").addEventListener("click", openAddFolder);
+
+  /* ---- كلمات جديدة قبل القراءة ---- */
+  $("#prebtn").addEventListener("click", function () {
+    var freq = {}, form = {}, firstS = {}, low = {}, STOP = " said were have been would could should there their about which where when what with from they them this that then than your will into just very also only some more most other these those because after before again while still never always every shall might "; 
+    sentences.forEach(function (sn) { (sn.match(TOKEN) || []).forEach(function (t) { if (!/^[A-Za-z]/.test(t)) return; var k = keyOf(t); if (t === t.toLowerCase()) low[k] = 1; freq[k] = (freq[k] || 0) + 1; if (!form[k]) { form[k] = t; firstS[k] = sn; } }); });
+    var known = {}; allDecks().forEach(function (d) { if (d.folder || !/^(a0|a1|a2)/.test(d.id)) return; entriesOf(d).forEach(function (w) { known[w.key] = 1; }); });
+    var list = Object.keys(freq).filter(function (k) { return k.length >= 4 && low[k] && STOP.indexOf(" " + k + " ") < 0 && !known[k] && !(words[k] && (words[k].level || 0) >= 2) && !(form[k][0] === form[k][0].toUpperCase() && form[k] !== form[k].toLowerCase() && freq[k] === 1 && firstS[k].indexOf(form[k]) > 0); })
+      .sort(function (a, b) { return freq[b] - freq[a] || b.length - a.length; }).slice(0, 12);
+    openSheet(function (box) {
+      box.className = box.className; box.appendChild(el("div", "sec", "كلمات جديدة في هذا النص"));
+      if (!list.length) { box.appendChild(el("div", "empty", "ما لقيت كلمات جديدة كثيرة. نصك سهل عليك!")); return; }
+      var wrap = el("div", "prewords"); box.appendChild(wrap);
+      wrap.appendChild(el("div", "pulse", "نجيب لك المعاني..."));
+      if (!sampleFn) { wrap.textContent = ""; wrap.appendChild(el("div", "empty", "الترجمة غير متاحة الآن")); return; }
+      sampleFn.json("Give the Arabic meaning (one to three words) of each English word as used in the given sentence. Reply with only a JSON object mapping each word to its Arabic meaning.\n" + JSON.stringify(list.map(function (k) { return { word: form[k], sentence: firstS[k] }; })), { modelTier: "quick" }).then(function (r) {
+        wrap.textContent = ""; var rows = [];
+        list.forEach(function (k) {
+          var ar = r && (r[form[k]] || r[k] || r[form[k].toLowerCase()]); if (!ar) return; ar = String(ar);
+          var row = el("div", "prow"); var left = el("div"); left.appendChild(el("b", null, form[k])); left.appendChild(el("span", null, " " + ar)); row.appendChild(left);
+          var b = el("button", "btn small", words[k] ? "محفوظة ✓" : "احفظ"); b.type = "button";
+          function save() { if (words[k]) return; words[k] = { key: k, word: form[k], base: form[k], pos: "", ar: ar, alt: [], note: "", sentence: firstS[k], level: 1, added: Date.now() }; saveWords(); b.textContent = "محفوظة ✓"; updateBadge(); markDay(); }
+          b.onclick = save; row.appendChild(b); wrap.appendChild(row); rows.push(save);
+        });
+        if (!rows.length) { wrap.appendChild(el("div", "empty", "تعذّر جلب المعاني. جرّب مرة ثانية")); return; }
+        var all = el("button", "btn main", "احفظ الكل"); all.type = "button"; all.onclick = function () { rows.forEach(function (f) { f(); }); toast("تم حفظ الكلمات"); }; box.appendChild(all);
+      }).catch(function () { wrap.textContent = ""; wrap.appendChild(el("div", "empty", "تعذّر جلب المعاني. جرّب مرة ثانية")); });
+    });
+  });
+
+  /* ================= المراجعة ================= */
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var MODES = [["cards", "بطاقات"], ["choice", "اختيار"], ["type", "كتابة"], ["dictate", "إملاء"], ["speak", "نطق"]];
+  function srcDeck() { if (rv.src === "due") return { id: "due", name: "المستحق اليوم", kind: "due" }; var a = allDecks(); return a.filter(function (d) { return d.id === rv.src; })[0] || a[0]; }
+  function saveLevel(w) { if (w.deck) { S.prog[progKey(w.deck, w.key)] = w.level; saveState(); } else { words[w.key] = w; saveWords(); } markDay(); }
+  function bump(w, ok) { w.level = ok ? Math.min(5, (w.level || 0) + 1) : Math.max(0, (w.level || 0) - 1); saveLevel(w); srs(w); }
+  function startReview() {
+    if (rv.src === "mine" && !count()) rv.src = "a1";
+    var all = entriesOf(srcDeck());
+    if (rv.src === "due") rv.queue = all.sort(function (a, b) { return (S.due[dueKey(a)] || 0) - (S.due[dueKey(b)] || 0); }).slice(0, 15);
+    else rv.queue = shuffle(all.filter(function (w) { return (w.level || 0) < 5; }).sort(function (a, b) { return (a.level || 0) - (b.level || 0); }).slice(0, 20)).slice(0, 10);
+    rv.i = 0; rv.score = 0; rv.revealed = false; rv.locked = false; renderReview();
+  }
+  function renderReview() {
+    var md = $("#modes"); md.textContent = "";
+    var sb = el("button", "fchip", "المصدر: " + srcDeck().name); sb.type = "button"; sb.setAttribute("aria-pressed", "true");
+    sb.onclick = function () {
+      openSheet(function (box) {
+        box.appendChild(el("div", "sec", "اختر مجلد المراجعة"));
+        var bd = el("button", "btn" + (rv.src === "due" ? " main" : ""), "المستحق اليوم (" + dueEntries().length + ")"); bd.type = "button"; bd.onclick = function () { rv.src = "due"; closeSheet(); startReview(); }; box.appendChild(bd);
+        allDecks().forEach(function (d) { if (d.parent) return; var b = el("button", "btn" + (d.id === rv.src ? " main" : ""), d.name + " (" + entriesOf(d).length + ")"); b.type = "button"; b.onclick = function () { rv.src = d.id; closeSheet(); startReview(); }; box.appendChild(b); });
+      });
+    };
+    md.appendChild(sb);
+    MODES.forEach(function (m) {
+      var b = el("button", "fchip", m[1]); b.type = "button"; b.setAttribute("aria-pressed", String(rv.mode === m[0]));
+      b.onclick = function () { rv.mode = m[0]; startReview(); }; md.appendChild(b);
+    });
+    var box = $("#review"); box.textContent = "";
+    var dn = dueEntries().length;
+    if (dn && rv.src !== "due") { var bn = el("div", "duebanner"); bn.appendChild(el("b", null, dn + " كلمة جاء وقت مراجعتها")); var bb = el("button", "btn main small", "راجعها الآن"); bb.type = "button"; bb.onclick = function () { rv.src = "due"; startReview(); }; bn.appendChild(bb); box.appendChild(bn); }
+    var pool = entriesOf(srcDeck()).filter(function (w) { return w.ar && w.ar !== "—"; });
+    if (!pool.length && rv.src === "due") { box.appendChild(el("div", "empty", "ممتاز! ما عندك كلمات مستحقة الحين. تقدر تختار مجلداً من «المصدر» وتراجع براحتك.")); return; }
+    if (!pool.length) { box.appendChild(el("div", "empty", "هذا المجلد فاضي. احفظ كلمات من النص أو أضفها من قسم كلماتي، أو اختر مجلداً ثانياً من «المصدر».")); return; }
+    if (rv.mode === "choice" && pool.length < 4) { box.appendChild(el("div", "empty", "تمرين الاختيار يحتاج 4 كلمات على الأقل في المجلد.")); return; }
+    if (!rv.queue.length || rv.i >= rv.queue.length) {
+      var done = el("div", "flash");
+      done.appendChild(el("div", "ans", rv.queue.length ? "خلّصت المراجعة" : "كل كلمات هذا المجلد وصلت للمستوى الأخير"));
+      if (rv.queue.length && rv.mode !== "cards") done.appendChild(el("div", "hint", "نتيجتك " + rv.score + " من " + rv.queue.length));
+      var again = el("button", "btn main", "راجع مرة ثانية"); again.type = "button"; again.onclick = startReview; done.appendChild(again); box.appendChild(done); return;
+    }
+    var w = rv.queue[rv.i];
+    var pr = el("div", "progress"); var bar = document.createElement("i"); bar.style.width = (rv.i / rv.queue.length * 100) + "%"; pr.appendChild(bar); box.appendChild(pr);
+    box.appendChild(el("div", "hint", (rv.i + 1) + " / " + rv.queue.length));
+    var f = el("div", "flash"); box.appendChild(f);
+    function ctxWith(hide) {
+      var ctx = el("div", "ctx"); var s = w.sentence || "", idx = s.toLowerCase().indexOf(w.word.toLowerCase());
+      if (idx >= 0) { ctx.appendChild(document.createTextNode(s.slice(0, idx))); ctx.appendChild(el("mark", null, hide ? "_____" : s.slice(idx, idx + w.word.length))); ctx.appendChild(document.createTextNode(s.slice(idx + w.word.length))); } else ctx.textContent = hide ? "" : s;
+      return ctx;
+    }
+    function next(ok) { bump(w, ok); if (ok) rv.score++; rv.i++; rv.revealed = false; rv.locked = false; renderReview(); }
+    if (rv.mode === "cards") {
+      f.appendChild(el("div", "big", w.word)); f.appendChild(ctxWith(false));
+      var sp = el("button", "btn ghost small", "استمع"); sp.type = "button"; sp.onclick = function () { speak(w.word); }; f.appendChild(sp);
+      if (!rv.revealed) { var sh = el("button", "btn main", "اعرض المعنى"); sh.type = "button"; sh.onclick = function () { rv.revealed = true; renderReview(); }; f.appendChild(sh); }
+      else {
+        f.appendChild(el("div", "ans", w.ar)); var r = el("div", "row"); r.style.justifyContent = "center";
+        var no = el("button", "btn ghost", "نسيتها"); no.type = "button"; no.onclick = function () { w.level = 0; saveLevel(w); srs(w); rv.queue.push(rv.queue.splice(rv.i, 1)[0]); rv.revealed = false; renderReview(); };
+        var yes = el("button", "btn main", "عرفتها"); yes.type = "button"; yes.onclick = function () { next(true); };
+        r.appendChild(no); r.appendChild(yes); f.appendChild(r);
+      }
+    } else if (rv.mode === "choice") {
+      f.appendChild(el("div", "big", w.word)); f.appendChild(ctxWith(false));
+      var sp2 = el("button", "btn ghost small", "استمع"); sp2.type = "button"; sp2.onclick = function () { speak(w.word); }; f.appendChild(sp2);
+      var others = shuffle(pool.filter(function (x) { return x.key !== w.key && x.ar !== w.ar; })).slice(0, 3);
+      var opts = shuffle(others.concat([w])); var og = el("div", "opts");
+      opts.forEach(function (o) {
+        var b = el("button", "opt", o.ar); b.type = "button";
+        b.onclick = function () {
+          if (rv.locked) return; rv.locked = true; var ok = o.key === w.key; b.classList.add(ok ? "ok" : "bad");
+          if (!ok) og.querySelectorAll(".opt").forEach(function (x, i) { if (opts[i].key === w.key) x.classList.add("ok"); });
+          setTimeout(function () { next(ok); }, ok ? 650 : 1400);
+        };
+        og.appendChild(b);
+      });
+      f.appendChild(og);
+    } else if (rv.mode === "type") {
+      f.appendChild(el("div", "ans", w.ar)); f.appendChild(ctxWith(true));
+      var inp = el("input", "field"); inp.id = "type-in"; inp.setAttribute("aria-label", "اكتب الكلمة بالإنجليزي"); inp.placeholder = "Type the English word"; inp.autocapitalize = "off"; inp.autocomplete = "off"; f.appendChild(inp);
+      var fb = el("div", "hint"); f.appendChild(fb);
+      var chk = el("button", "btn main", "تحقق"); chk.type = "button";
+      function check() {
+        if (rv.locked) return; var v = inp.value.trim().toLowerCase(); if (!v) return; rv.locked = true;
+        var ok = v === w.key || v === keyOf(w.base || "");
+        fb.textContent = ok ? "صح!" : "الكلمة: " + w.word; fb.style.color = ok ? "var(--known)" : "var(--danger)"; fb.style.fontWeight = "700";
+        setTimeout(function () { next(ok); }, ok ? 700 : 1600);
+      }
+      chk.onclick = check; inp.addEventListener("keydown", function (e) { if (e.key === "Enter") check(); }); f.appendChild(chk);
+    } else if (rv.mode === "dictate") {
+      f.appendChild(el("div", "hint", "اسمع الكلمة واكتبها بالإنجليزي"));
+      var ls = el("button", "btn main", "استمع"); ls.type = "button"; ls.onclick = function () { speak(w.word); }; f.appendChild(ls);
+      if (w.sentence) { var ls2 = el("button", "btn ghost small", "استمع للجملة"); ls2.type = "button"; ls2.onclick = function () { speak(w.sentence); }; f.appendChild(ls2); }
+      var din2 = el("input", "field"); din2.setAttribute("aria-label", "اكتب اللي سمعته"); din2.placeholder = "Type what you hear"; din2.autocapitalize = "off"; din2.autocomplete = "off"; din2.setAttribute("spellcheck", "false"); f.appendChild(din2);
+      var fb3 = el("div", "hint"); f.appendChild(fb3);
+      var ck = el("button", "btn", "تحقق"); ck.type = "button";
+      function check2() {
+        if (rv.locked) return; var v = din2.value.trim().toLowerCase(); if (!v) return; rv.locked = true;
+        var ok = v === w.key || v === keyOf(w.base || "");
+        fb3.textContent = ok ? "صح! " + w.ar : "الكلمة: " + w.word + " · " + w.ar; fb3.style.color = ok ? "var(--known)" : "var(--danger)"; fb3.style.fontWeight = "700";
+        setTimeout(function () { next(ok); }, ok ? 900 : 2000);
+      }
+      ck.onclick = check2; din2.addEventListener("keydown", function (e) { if (e.key === "Enter") check2(); }); f.appendChild(ck);
+      setTimeout(function () { speak(w.word); }, 350);
+    } else if (rv.mode === "speak") {
+      if (!SR) { fallbackSpeak(f, w, next); return; }
+      f.appendChild(el("div", "ans", w.ar)); f.appendChild(el("div", "big", w.word));
+      var fb2 = el("div", "hint", "اضغط الزر وانطق الكلمة بالإنجليزي"); f.appendChild(fb2);
+      var mic = el("button", "btn main", "ابدأ النطق"); mic.type = "button";
+      mic.onclick = function () {
+        if (rv.locked) return; var rec = new SR(); rec.lang = "en-US"; rec.maxAlternatives = 5; fb2.textContent = "أسمعك..."; mic.disabled = true;
+        rec.onresult = function (e) {
+          var heard = []; for (var i = 0; i < e.results[0].length; i++) heard.push(e.results[0][i].transcript.toLowerCase());
+          var ok = heard.some(function (h) { return h.indexOf(w.key) >= 0; }); rv.locked = true;
+          fb2.textContent = ok ? "نطقك ممتاز!" : "سمعت: " + heard[0]; fb2.style.color = ok ? "var(--known)" : "var(--danger)";
+          setTimeout(function () { next(ok); }, ok ? 800 : 1800);
+        };
+        rec.onerror = function () { fb2.textContent = "ما سمعتك. جرّب مرة ثانية"; mic.disabled = false; };
+        rec.onend = function () { if (!rv.locked) mic.disabled = false; };
+        try { rec.start(); } catch (e) { mic.disabled = false; }
+      };
+      f.appendChild(mic);
+      var skip = el("button", "btn ghost small", "تخطّي"); skip.type = "button"; skip.onclick = function () { rv.i++; renderReview(); }; f.appendChild(skip);
+    }
+  }
+
+
+  /* ================= الترجمة ================= */
+  var T = { dir: "en", out: null, busy: false };
+  function addHist(o) {
+    S.thist = S.thist.filter(function (h) { return !(h.src === o.src && h.dir === o.dir); });
+    S.thist.unshift({ src: o.src, tr: o.tr, dir: o.dir, t: Date.now() }); S.thist = S.thist.slice(0, 20); saveState();
+  }
+  function setDir(d) {
+    T.dir = d; $("#tl-src").textContent = d === "en" ? "الإنجليزية" : "العربية"; $("#tl-dst").textContent = d === "en" ? "العربية" : "الإنجليزية";
+    $("#tin").placeholder = d === "en" ? "Type or paste English text..." : "اكتب أو الصق نصاً عربياً...";
+  }
+  function renderTrans() {
+    setDir(T.dir); $("#tmic").hidden = !SR;
+    var h = $("#thist"); h.textContent = ""; $("#thead").hidden = !S.thist.length;
+    S.thist.forEach(function (it) {
+      var b = el("button", "hrow"); b.type = "button"; b.appendChild(el("b", null, it.src)); b.appendChild(el("span", null, it.tr));
+      b.onclick = function () { setDir(it.dir); $("#tin").value = it.src; T.out = { src: it.src, tr: it.tr, dir: it.dir, alts: [], ex: [], ipa: "", say: "" }; renderTransOut(T.out); window.scrollTo(0, 0); };
+      h.appendChild(b);
+    });
+    if (T.out) renderTransOut(T.out);
+  }
+  function renderTransOut(o) {
+    var out = $("#tout"); out.textContent = ""; if (!o) return;
+    var c = el("div", "tres"); var enSide = o.dir === "en" ? o.src : o.tr, arSide = o.dir === "en" ? o.tr : o.src;
+    c.appendChild(el("div", "tt" + (o.dir === "ar" ? " en" : ""), o.tr));
+    var prn = el("div", "prn", [o.ipa, o.say].filter(Boolean).join("  ·  ")); if (prn.textContent) c.appendChild(prn);
+    var act = el("div", "row");
+    var sp = el("button", "btn small", "استمع"); sp.type = "button"; sp.onclick = function () { speak(enSide); }; act.appendChild(sp);
+    var cp = el("button", "btn small ghost", "نسخ"); cp.type = "button"; cp.onclick = function () { try { navigator.clipboard.writeText(o.tr).then(function () { toast("تم النسخ"); }, function () { toast("تعذّر النسخ"); }); } catch (e) { toast("تعذّر النسخ"); } }; act.appendChild(cp);
+    if (enSide.split(/\s+/).length <= 5 && o.tr) {
+      var sv = el("button", "btn small main", "احفظ ككلمة"); sv.type = "button";
+      sv.onclick = function () { var k = keyOf(enSide.trim()); var prev = words[k]; words[k] = { key: k, word: enSide.trim(), base: enSide.trim(), pos: "", ar: arSide.trim(), alt: o.alts || [], note: "", sentence: prev ? prev.sentence : "", level: prev ? prev.level : 1, added: prev ? prev.added : Date.now() }; saveWords(); markDay(); renderChips(); updateBadge(); toast("تم حفظ الكلمة"); };
+      act.appendChild(sv);
+    }
+    c.appendChild(act);
+    if (o.alts && o.alts.length) { c.appendChild(el("div", "lab", "ترجمات أخرى")); var al = el("div", "alts"); o.alts.forEach(function (a) { al.appendChild(el("span", null, a)); }); c.appendChild(al); }
+    if (o.ex && o.ex.length) {
+      c.appendChild(el("div", "lab", "أمثلة")); var ex = el("div", "exs");
+      o.ex.forEach(function (e) { var d = el("div", "ex"); d.appendChild(el("div", "e1", e.en)); d.appendChild(el("div", "e2", e.ar)); d.onclick = function () { speak(e.en); }; ex.appendChild(d); });
+      c.appendChild(ex);
+    }
+    out.appendChild(c);
+  }
+  function doTranslate() {
+    var txt = $("#tin").value.trim(); if (!txt) { toast("اكتب نصاً أولاً"); return; }
+    if (!sampleFn) { toast("الترجمة غير متاحة الآن"); return; } if (T.busy) return; T.busy = true;
+    var out = $("#tout"); out.textContent = ""; var wait = el("div", "tres"); wait.appendChild(el("div", "pulse", "Claude يترجم...")); out.appendChild(wait);
+    var dir = T.dir, srcN = dir === "en" ? "English" : "Arabic", dstN = dir === "en" ? "Arabic" : "English";
+    var prompt = "Translate from " + srcN + " to " + dstN + ". Text: " + JSON.stringify(txt) + "\nReply with only a JSON object: {\"tr\": natural translation, \"alts\": up to 3 other short possible translations (only when the text is a word or short phrase, else []), \"ex\": up to 3 objects {\"en\": an English example sentence using the English word/phrase, \"ar\": its Arabic translation} (only when the text is a word or short phrase, else []), \"ipa\": IPA of the English side when the text is a word or short phrase, else \"\", \"say\": the English side read in Arabic letters when the text is a word or short phrase, else \"\"}";
+    sampleFn.json(prompt, { modelTier: "quick" }).then(function (r) {
+      var o = { src: txt, dir: dir, tr: String((r && r.tr) || ""), alts: Array.isArray(r && r.alts) ? r.alts.slice(0, 3).map(String) : [], ex: Array.isArray(r && r.ex) ? r.ex.slice(0, 3).filter(function (e) { return e && e.en && e.ar; }).map(function (e) { return { en: String(e.en), ar: String(e.ar) }; }) : [], ipa: String((r && r.ipa) || ""), say: String((r && r.say) || "") };
+      if (!o.tr) throw new Error("empty");
+      T.out = o; addHist(o); renderTrans(); markDay();
+    }).catch(function () { out.textContent = ""; toast("تعذّرت الترجمة. جرّب مرة ثانية"); }).then(function () { T.busy = false; });
+  }
+  $("#tgo").addEventListener("click", doTranslate);
+  $("#tin").addEventListener("keydown", function (e) { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) doTranslate(); });
+  $("#tswap").addEventListener("click", function () { var o = T.out; setDir(T.dir === "en" ? "ar" : "en"); if (o && o.tr) { $("#tin").value = o.tr; } T.out = null; $("#tout").textContent = ""; });
+  $("#tclear").addEventListener("click", function () { $("#tin").value = ""; T.out = null; $("#tout").textContent = ""; $("#tin").focus(); });
+  $("#tspkin").addEventListener("click", function () { var v = $("#tin").value.trim(); if (!v) return; if (T.dir === "en") speak(v); else toast("النطق العربي يعتمد على جهازك"); });
+  $("#tmic").addEventListener("click", function () {
+    if (!SR) return; var rec = new SR(); rec.lang = T.dir === "en" ? "en-US" : "ar-SA"; var b = $("#tmic"); b.classList.add("on"); toast("أسمعك...");
+    rec.onresult = function (e) { $("#tin").value = e.results[0][0].transcript; };
+    rec.onerror = function () { toast("ما سمعتك. جرّب مرة ثانية"); };
+    rec.onend = function () { b.classList.remove("on"); };
+    try { rec.start(); } catch (e) { b.classList.remove("on"); }
+  });
+
+  /* ================= القواميس ================= */
+  var DICS = [
+    { id: "ea", name: "إنجليزي ← عربي", sub: "المعاني بالعربي مع أمثلة", ph: "اكتب كلمة إنجليزية", en: true },
+    { id: "ee", name: "إنجليزي ← إنجليزي", sub: "تعريفات بسيطة بالإنجليزي", ph: "Type an English word", en: true },
+    { id: "th", name: "المرادفات والأضداد", sub: "كلمات قريبة وعكسها لكل معنى", ph: "Type an English word", en: true },
+    { id: "ae", name: "عربي ← إنجليزي", sub: "اكتب بالعربي وشف الإنجليزي", ph: "اكتب كلمة أو جملة بالعربي", en: false }
+  ];
+  var D = { busy: false, kind: "ea" };
+  function setMode(m) {
+    $("#m-tr").classList.toggle("on", m === "tr"); $("#m-dic").classList.toggle("on", m === "dic");
+    $("#tpane").hidden = m !== "tr"; $("#dpane").hidden = m !== "dic";
+    if (m === "dic") { renderDictHome(); setTimeout(function () { try { $("#din").focus(); } catch (e) {} }, 50); }
+  }
+  $("#m-tr").addEventListener("click", function () { setMode("tr"); });
+  $("#m-dic").addEventListener("click", function () { setMode("dic"); });
+  function curDic() { return DICS.filter(function (d) { return d.id === D.kind; })[0]; }
+  function renderDictHome() {
+    var pk = $("#dpick"); pk.textContent = "";
+    DICS.forEach(function (d) {
+      var b = el("button", d.id === D.kind ? "on" : ""); b.type = "button"; b.appendChild(el("b", null, d.name)); b.appendChild(el("span", null, d.sub));
+      b.onclick = function () { D.kind = d.id; $("#dout").textContent = ""; $("#dsugs").textContent = ""; renderDictHome(); if ($("#din").value.trim()) doDict($("#din").value); };
+      pk.appendChild(b);
+    });
+    $("#din").placeholder = curDic().ph;
+    var h = $("#dhist"); h.textContent = ""; $("#dhead").hidden = !S.dh.length;
+    S.dh.forEach(function (w) { var b = el("button", null, w); b.type = "button"; b.onclick = function () { $("#din").value = w; doDict(w); }; h.appendChild(b); });
+  }
+  function localMatches(q) {
+    q = q.trim().toLowerCase(); var out = [], seen = {};
+    if (q.length < 2 || /[^\x00-\x7F]/.test(q)) return out;
+    function push(w, ar) { var k = keyOf(w); if (!seen[k] && out.length < 8) { seen[k] = 1; out.push({ word: w, ar: ar }); } }
+    Object.keys(words).forEach(function (k) { if (k.indexOf(q) === 0) push(words[k].word, words[k].ar); });
+    allDecks().forEach(function (d) { if (d.folder || d.id === "mine" || out.length >= 8) return; entriesOf(d).forEach(function (w) { if (w.key.indexOf(q) === 0) push(w.word, w.ar); }); });
+    return out;
+  }
+  $("#din").addEventListener("input", function () {
+    var box = $("#dsugs"); box.textContent = ""; if (!curDic().en) return;
+    localMatches($("#din").value).forEach(function (m) { var b = el("button", null, m.word); b.type = "button"; b.appendChild(el("span", null, m.ar)); b.onclick = function () { $("#din").value = m.word; box.textContent = ""; doDict(m.word); }; box.appendChild(b); });
+  });
+  $("#din").addEventListener("keydown", function (e) { if (e.key === "Enter") { $("#dsugs").textContent = ""; doDict($("#din").value); } });
+  $("#dgo").addEventListener("click", function () { $("#dsugs").textContent = ""; doDict($("#din").value); });
+  function arr(v, n) { return Array.isArray(v) ? v.slice(0, n).map(String).filter(Boolean) : []; }
+  function cleanEntry(r) {
+    if (!r || !r.word) return null;
+    var senses = (Array.isArray(r.senses) ? r.senses : []).slice(0, 4).filter(function (x) { return x && x.ar; }).map(function (x) {
+      return { pos: String(x.pos || ""), ar: String(x.ar), def: String(x.def || ""), ex: x.ex && x.ex.en ? { en: String(x.ex.en), ar: String(x.ex.ar || "") } : null, syn: arr(x.syn, 4), ant: arr(x.ant, 3) };
+    });
+    if (!senses.length) return null;
+    return { word: String(r.word), level: /^(A1|A2|B1|B2|C1|C2)$/.test(String(r.level)) ? String(r.level) : "", ipa: String(r.ipa || ""), say: String(r.say || ""), forms: String(r.forms || ""), senses: senses, syn: arr(r.syn, 4), ant: arr(r.ant, 3),
+      phrases: (Array.isArray(r.phrases) ? r.phrases : []).slice(0, 3).filter(function (p) { return p && p.en; }).map(function (p) { return { en: String(p.en), ar: String(p.ar || "") }; }), tip: String(r.tip || "") };
+  }
+  function cacheSet(key, v) { S.dc[key] = v; var ks = Object.keys(S.dc); while (ks.length > 150) delete S.dc[ks.shift()]; }
+  function waitBox(t) { var out = $("#dout"); out.textContent = ""; var w = el("div", "dent"); w.appendChild(el("div", "pulse", t)); out.appendChild(w); return out; }
+  function doDict(q) {
+    q = String(q || "").trim(); if (!q) { toast("اكتب كلمة للبحث"); return; }
+    if (D.kind === "ae") { doAE(q); return; }
+    var key = keyOf(q), hit = S.dc[key];
+    if (hit && hit.senses) { showDict(hit); return; }
+    if (!sampleFn) { toast("القاموس غير متاح الآن"); return; } if (D.busy) return; D.busy = true;
+    var out = waitBox("نبحث لك في القاموس...");
+    var prompt = "You are a learner's dictionary for Arabic-speaking English learners. Make an entry for: " + JSON.stringify(q) + ". If it is misspelled, correct it. If it is Arabic, make the entry for its best English word.\nReply with only a JSON object: {\"word\": dictionary form, \"level\": CEFR level A1 to C2, \"ipa\": IPA, \"say\": how to say it using Arabic letters, \"forms\": inflections as one short line (verbs: base, third person, past, past participle, -ing; nouns: plural; adjectives: comparative and superlative; otherwise empty), \"senses\": up to 4 most useful senses, each {\"pos\": part of speech in Arabic, \"ar\": Arabic meaning in one to three words, \"def\": simple English definition under 15 words, \"ex\": {\"en\": example sentence, \"ar\": its Arabic translation}, \"syn\": up to 4 synonyms of this sense, \"ant\": up to 3 antonyms of this sense (may be empty)}, \"syn\": up to 4 synonyms overall, \"ant\": up to 3 antonyms overall (may be empty), \"phrases\": up to 3 common phrases {\"en\": phrase, \"ar\": Arabic}, \"tip\": one short Arabic tip to remember the word}";
+    sampleFn.json(prompt, { modelTier: "quick" }).then(function (r) {
+      var e = cleanEntry(r); if (!e) throw new Error("bad");
+      cacheSet(key, e); cacheSet(keyOf(e.word), e); showDict(e); markDay();
+    }).catch(function () { out.textContent = ""; toast("ما لقيت الكلمة. تأكد من الإملاء وجرّب مرة ثانية"); }).then(function () { D.busy = false; });
+  }
+  function remember(w) { S.dh = [w].concat(S.dh.filter(function (x) { return keyOf(x) !== keyOf(w); })).slice(0, 30); saveState(); renderDictHome(); }
+  function saveBtn(word, ar, pos, alt, sentence) {
+    var sv = el("button", "btn small main", words[keyOf(word)] ? "محفوظة ✓" : "احفظ الكلمة"); sv.type = "button";
+    sv.onclick = function () { var k = keyOf(word), prev = words[k]; words[k] = { key: k, word: word, base: word, pos: pos || "", ar: ar, alt: alt || [], note: "", sentence: sentence || (prev ? prev.sentence : ""), level: prev ? prev.level : 1, added: prev ? prev.added : Date.now() }; saveWords(); markDay(); updateBadge(); sv.textContent = "محفوظة ✓"; toast("تم حفظ الكلمة"); };
+    return sv;
+  }
+  function headBlock(c, e) {
+    var dh = el("div", "dh"); dh.appendChild(el("div", "dw", e.word)); if (e.level) dh.appendChild(el("span", "lvb " + e.level, e.level)); c.appendChild(dh);
+    var pr = [e.ipa, e.say ? "نطقها: " + e.say : ""].filter(Boolean).join("  ·  "); if (pr) c.appendChild(el("div", "dp", pr));
+    if (e.forms) c.appendChild(el("div", "df", e.forms));
+    var act = el("div", "row"); var sp = el("button", "btn small", "استمع"); sp.type = "button"; sp.onclick = function () { speak(e.word); }; act.appendChild(sp);
+    var f = e.senses[0]; act.appendChild(saveBtn(e.word, f.ar, f.pos, e.senses.slice(1).map(function (x) { return x.ar; }).slice(0, 2), f.ex ? f.ex.en : ""));
+    c.appendChild(act);
+  }
+  function chipsRow(c, label, list, cls) { if (!list.length) return; c.appendChild(el("div", "lab", label)); var a = el("div", "chips2" + (cls ? " " + cls : "")); list.forEach(function (w) { var sp = el("span", null, w); sp.onclick = function () { speak(w); }; a.appendChild(sp); }); c.appendChild(a); }
+  function showDict(e) {
+    remember(e.word);
+    var out = $("#dout"); out.textContent = ""; var c = el("div", "dent"); headBlock(c, e);
+    if (D.kind === "th") {
+      e.senses.forEach(function (x, i) {
+        var sd = el("div", "sense"); sd.style.borderInlineStartColor = "var(--c" + (i % 5) + ")";
+        var t = el("div", "sa", x.ar); t.style.color = "var(--c" + (i % 5) + ")"; if (x.pos) sd.appendChild(el("div", "sp", x.pos)); sd.appendChild(t);
+        chipsRow(sd, "كلمات قريبة", x.syn.length ? x.syn : (i === 0 ? e.syn : []), ""); chipsRow(sd, "عكسها", x.ant.length ? x.ant : (i === 0 ? e.ant : []), "ant");
+        if (!sd.querySelector(".chips2")) sd.appendChild(el("div", "sd", "ما فيه مرادفات واضحة لهذا المعنى"));
+        c.appendChild(sd);
+      });
+    } else {
+      e.senses.forEach(function (x, i) {
+        var sd = el("div", "sense"); sd.style.borderInlineStartColor = "var(--c" + (i % 5) + ")";
+        if (x.pos) sd.appendChild(el("div", "sp", x.pos));
+        if (D.kind === "ee") { var d1 = el("div", "sd big", x.def || x.ar); sd.appendChild(d1); if (x.ex) { var e1 = el("div", "se", x.ex.en); e1.onclick = function () { speak(x.ex.en); }; sd.appendChild(e1); } sd.appendChild(el("div", "se2", x.ar)); }
+        else { var sa = el("div", "sa", x.ar); sa.style.color = "var(--c" + (i % 5) + ")"; sd.appendChild(sa); if (x.def) sd.appendChild(el("div", "sd", x.def)); if (x.ex) { var ex = el("div", "se", x.ex.en); ex.onclick = function () { speak(x.ex.en); }; sd.appendChild(ex); if (x.ex.ar) sd.appendChild(el("div", "se2", x.ex.ar)); } }
+        c.appendChild(sd);
+      });
+      chipsRow(c, "كلمات قريبة", e.syn, ""); chipsRow(c, "عكسها", e.ant, "ant");
+      if (e.phrases.length) { c.appendChild(el("div", "lab", "تعبيرات شائعة")); e.phrases.forEach(function (p) { var r = el("div", "phr"); r.appendChild(el("b", null, p.en)); if (D.kind !== "ee") r.appendChild(el("span", null, p.ar)); c.appendChild(r); }); }
+      if (e.tip && D.kind !== "ee") { c.appendChild(el("div", "lab", "نصيحة للحفظ")); c.appendChild(el("div", "tipbox", e.tip)); }
+    }
+    out.appendChild(c);
+  }
+  /* عربي ← إنجليزي */
+  function doAE(q) {
+    var key = "ae|" + keyOf(q), hit = S.dc[key];
+    if (hit && hit.results) { showAE(q, hit); return; }
+    if (!sampleFn) { toast("القاموس غير متاح الآن"); return; } if (D.busy) return; D.busy = true;
+    var out = waitBox("نبحث لك عن المقابل الإنجليزي...");
+    var prompt = "You are an Arabic to English dictionary for Arabic speakers learning English. Arabic input: " + JSON.stringify(q) + ".\nReply with only a JSON object: {\"results\": up to 6 English equivalents ordered from most common to least, each {\"en\": the English word or short phrase, \"pos\": part of speech in Arabic, \"note\": one short Arabic note about the difference in meaning or when to use it, \"ex\": {\"en\": example sentence, \"ar\": its Arabic translation}}}";
+    sampleFn.json(prompt, { modelTier: "quick" }).then(function (r) {
+      var res = (r && Array.isArray(r.results) ? r.results : []).slice(0, 6).filter(function (x) { return x && x.en; }).map(function (x) { return { en: String(x.en), pos: String(x.pos || ""), note: String(x.note || ""), ex: x.ex && x.ex.en ? { en: String(x.ex.en), ar: String(x.ex.ar || "") } : null }; });
+      if (!res.length) throw new Error("bad"); var v = { results: res }; cacheSet(key, v); showAE(q, v); markDay();
+    }).catch(function () { out.textContent = ""; toast("ما لقيت مقابل. جرّب كلمة ثانية"); }).then(function () { D.busy = false; });
+  }
+  function showAE(q, v) {
+    remember(q);
+    var out = $("#dout"); out.textContent = ""; var c = el("div", "dent"); c.appendChild(el("div", "dh")).appendChild(el("div", "dw", q)); c.querySelector(".dw").style.direction = "rtl"; c.querySelector(".dw").style.fontFamily = "var(--ui)";
+    v.results.forEach(function (x, i) {
+      var sd = el("div", "sense"); sd.style.borderInlineStartColor = "var(--c" + (i % 5) + ")";
+      var row = el("div", "dh"); var w = el("div", "sa", x.en); w.style.fontFamily = "var(--read)"; w.style.direction = "ltr"; w.style.color = "var(--c" + (i % 5) + ")"; row.appendChild(w);
+      var bx = el("div", "row"); var sp = el("button", "btn small", "استمع"); sp.type = "button"; sp.onclick = function () { speak(x.en); }; bx.appendChild(sp); bx.appendChild(saveBtn(x.en, q, x.pos, [], x.ex ? x.ex.en : "")); row.appendChild(bx); sd.appendChild(row);
+      if (x.pos) sd.appendChild(el("div", "sp", x.pos)); if (x.note) sd.appendChild(el("div", "se2", x.note));
+      if (x.ex) { var ex = el("div", "se", x.ex.en); ex.onclick = function () { speak(x.ex.en); }; sd.appendChild(ex); if (x.ex.ar) sd.appendChild(el("div", "se2", x.ex.ar)); }
+      c.appendChild(sd);
+    });
+    out.appendChild(c);
+  }
+
+  /* ================= تشغيل ================= */
+  loadAll(); applyFs(); initAI();
+  if ("serviceWorker" in navigator && !PREVIEW) { navigator.serviceWorker.register("/sw.js").catch(function () {}); }
+  renderHome(); updateBadge();
+})();
+</script>
+</body></html>
